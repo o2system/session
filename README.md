@@ -59,4 +59,4 @@ Please kindly submit your [issues at Github](https://github.com/o2system/session
 | Github Pages Designer and Writer | [Teguh Rianto](http://teguhrianto.tk)
 
 ### Supported By
-* Zend 
+* [Zend Technologies Ltd.](http://zend.com)
