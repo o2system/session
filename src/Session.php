@@ -15,6 +15,7 @@ namespace O2System;
 // ------------------------------------------------------------------------
 
 use O2System\Core\Metadata\Config;
+use O2System\Core\Reactor;
 use O2System\Psr\Log\LoggerAwareInterface;
 use O2System\Psr\Log\LoggerInterface;
 use O2System\Session\Handlers\BaseHandler;
@@ -87,6 +88,12 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 	{
 		$this->logger =& $logger;
 
+		// Register Session Namespace
+		Reactor::getInstance()->loader->addNamespace( 'O2System\Session', __DIR__ );
+
+		// Load Session Language
+		Reactor::getInstance()->language->load( 'session' );
+
 		if ( isset( $this->handler ) )
 		{
 			$this->handler->setLogger( $this->logger );
@@ -108,7 +115,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 		{
 			if ( $this->logger instanceof LoggerInterface )
 			{
-				$this->logger->debug( 'SESSION_DEBUG_CLI_ABORTED' );
+				$this->logger->debug( 'DEBUG_SESSION_CLI_ABORTED' );
 			}
 
 			return;
@@ -117,7 +124,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 		{
 			if ( $this->logger instanceof LoggerInterface )
 			{
-				$this->logger->error( 'SESSION_DEBUG_AUTO_START_ABORTED' );
+				$this->logger->error( 'DEBUG_SESSION_AUTO_START_ABORTED' );
 			}
 
 			return;

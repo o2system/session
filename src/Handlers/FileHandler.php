@@ -204,7 +204,7 @@ class FileHandler extends BaseHandler
 		{
 			if ( $this->logger instanceof LoggerInterface )
 			{
-				$this->logger->error( 'E_SESSION_FILE_GC', [ $this->path ] );
+				$this->logger->error( 'E_SESSION_FILE_ON_GC', [ $this->path ] );
 			}
 
 			return FALSE;
@@ -260,7 +260,7 @@ class FileHandler extends BaseHandler
 			{
 				if ( $this->logger instanceof LoggerInterface )
 				{
-					$this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->filePath . $session_id ] );
+					$this->logger->error( 'E_SESSION_FILE_ON_READ', [ $this->filePath . $session_id ] );
 				}
 
 				return FALSE;
@@ -273,7 +273,7 @@ class FileHandler extends BaseHandler
 
 				if ( $this->logger instanceof LoggerInterface )
 				{
-					$this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->filePath . $session_id ] );
+					$this->logger->error( 'E_SESSION_ON_LOCK', [ $this->filePath . $session_id ] );
 				}
 
 				return FALSE;
@@ -377,7 +377,7 @@ class FileHandler extends BaseHandler
 
 				if ( $this->logger instanceof LoggerInterface )
 				{
-					$this->logger->error( 'E_SESSION_FILE_UNABLE_TO_WRITE' );
+					$this->logger->error( 'E_SESSION_FILE_ON_WRITE' );
 				}
 
 				return FALSE;
