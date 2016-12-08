@@ -10,22 +10,22 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Session\Handlers;
+namespace O2System\Session\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Kernel\Registry\Config;
+use O2System\Kernel\Registries\Config;
 use O2System\Psr\Log\LoggerAwareInterface;
 use O2System\Psr\Log\LoggerInterface;
 
 /**
- * Class BaseHandler
+ * Class AbstractHandler
  *
  * Base class of session platform handlers.
  *
  * @package O2System\Session\Handler
  */
-abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInterface
+abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareInterface
 {
     /**
      * Session Handler Platform Name
@@ -86,11 +86,11 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     //--------------------------------------------------------------------
 
     /**
-     * BaseHandler::__construct
+     * AbstractHandler::__construct
      *
-     * @param \O2System\Kernel\Registry\Config $config
+     * @param \O2System\Kernel\Registries\Config $config
      *
-     * @return BaseHandler
+     * @return AbstractHandler
      */
     public function __construct ( Config $config )
     {
@@ -102,7 +102,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     //--------------------------------------------------------------------
 
     /**
-     * BaseHandler::setPrefixKey
+     * AbstractHandler::setPrefixKey
      *
      * Sets cache prefix key
      *
@@ -116,7 +116,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     // ------------------------------------------------------------------------
 
     /**
-     * BaseHandler::setLogger
+     * AbstractHandler::setLogger
      *
      * Sets a logger instance on the object
      *
@@ -130,7 +130,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     }
 
     /**
-     * BaseHandler::getPlatform
+     * AbstractHandler::getPlatform
      *
      * Get Current Platform
      *
@@ -144,7 +144,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     //--------------------------------------------------------------------
 
     /**
-     * BaseHandler::open
+     * AbstractHandler::open
      *
      * Initialize session
      *
@@ -162,7 +162,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     abstract public function open ( $savePath, $name );
 
     /**
-     * BaseHandler::close
+     * AbstractHandler::close
      *
      * Close the session
      *
@@ -176,7 +176,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     abstract public function close ();
 
     /**
-     * BaseHandler::destroy
+     * AbstractHandler::destroy
      *
      * Destroy a session
      *
@@ -193,7 +193,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     abstract public function destroy ( $sessionId );
 
     /**
-     * BaseHandler::gc
+     * AbstractHandler::gc
      *
      * Cleanup old sessions
      *
@@ -213,7 +213,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     abstract public function gc ( $maxlifetime );
 
     /**
-     * BaseHandler::read
+     * AbstractHandler::read
      *
      * Read session data
      *
@@ -231,7 +231,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     abstract public function read ( $sessionId );
 
     /**
-     * BaseHandler::write
+     * AbstractHandler::write
      *
      * Write session data
      *
@@ -255,7 +255,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     abstract public function write ( $sessionId, $sessionData );
 
     /**
-     * BaseHandler::isSupported
+     * AbstractHandler::isSupported
      *
      * Checks if this platform is supported on this system.
      *
@@ -266,7 +266,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     //--------------------------------------------------------------------
 
     /**
-     * BaseHandler::_lockSession
+     * AbstractHandler::_lockSession
      *
      * A dummy method allowing drivers with no locking functionality
      * (databases other than PostgreSQL and MySQL) to act as if they
@@ -276,7 +276,7 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
      *
      * @return bool
      */
-    protected function _lockSession ( $sessionId )
+    protected function lockSession ( $sessionId )
     {
         $this->isLocked = true;
 
@@ -286,13 +286,13 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     //--------------------------------------------------------------------
 
     /**
-     * BaseHandler::_lockRelease
+     * AbstractHandler::_lockRelease
      *
      * Releases the lock, if any.
      *
      * @return bool
      */
-    protected function _lockRelease ()
+    protected function lockRelease ()
     {
         $this->isLocked = false;
 
@@ -302,14 +302,14 @@ abstract class BaseHandler implements \SessionHandlerInterface, LoggerAwareInter
     //--------------------------------------------------------------------
 
     /**
-     * BaseHandler::_destroyCookie
+     * AbstractHandler::_destroyCookie
      *
      * Internal method to force removal of a cookie by the client
      * when session_destroy() is called.
      *
      * @return bool
      */
-    protected function _destroyCookie ()
+    protected function destroyCookie ()
     {
         return setcookie(
             $this->config[ 'name' ],

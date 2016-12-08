@@ -10,46 +10,39 @@
  */
 // ------------------------------------------------------------------------
 
-// Define SESSION_PATH
-define( 'SESSION_PATH', __DIR__ . DIRECTORY_SEPARATOR );
-
-// ------------------------------------------------------------------------
-
 /**
  * O2System Psr Autoload
  *
  * @param $className
  */
 spl_autoload_register(
-	function ( $className )
-	{
-		if ( $className === 'O2System\Session' )
-		{
-			require __DIR__ . '/Session.php';
-		}
-		elseif ( strpos( $className, 'O2System\Session\\' ) === FALSE )
-		{
-			return;
-		}
+    function ( $className ) {
+        if ( $className === 'O2System\Session' ) {
+            require __DIR__ . '/Session.php';
+        } elseif ( strpos( $className, 'O2System\Session\\' ) === false ) {
+            return;
+        }
 
-		$className = ltrim( $className, '\\' );
-		$filePath  = '';
+        $className = ltrim( $className, '\\' );
+        $filePath = '';
 
-		if ( $lastNsPos = strripos( $className, '\\' ) )
-		{
-			$namespace = substr( $className, 0, $lastNsPos );
-			$className = substr( $className, $lastNsPos + 1 );
-			$filePath  = str_replace( '\\', DIRECTORY_SEPARATOR, $namespace ) . DIRECTORY_SEPARATOR;
-		}
+        if ( $lastNsPos = strripos( $className, '\\' ) ) {
+            $namespace = substr( $className, 0, $lastNsPos );
+            $className = substr( $className, $lastNsPos + 1 );
+            $filePath = $namespace . '\\';
+        }
 
-		$filePath .= str_replace( '_', DIRECTORY_SEPARATOR, $className ) . '.php';
+        $filePath .= str_replace( '_', DIRECTORY_SEPARATOR, $className ) . '.php';
 
-		// Fixed Path
-		$filePath = str_replace( 'O2System\Session\\', SESSION_PATH, $filePath );
+        // Fixed Path
+        $filePath = str_replace( 'O2System\Session\\', __DIR__ . DIRECTORY_SEPARATOR, $filePath );
+        $filePath = str_replace( [ '\\', '/' ], DIRECTORY_SEPARATOR, $filePath );
 
-		if ( file_exists( $filePath ) )
-		{
-			require $filePath;
-		}
+        if ( file_exists( $filePath ) ) {
+            require $filePath;
+        }
 
-	}, TRUE, TRUE );
+    },
+    true,
+    true
+);

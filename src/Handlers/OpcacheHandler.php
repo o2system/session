@@ -15,333 +15,313 @@ namespace O2System\Session\Handlers;
 // ------------------------------------------------------------------------
 
 use O2System\Psr\Log\LoggerInterface;
+use O2System\Session\Abstracts\AbstractHandler;
 
 /**
  * Class OpcacheHandler
  *
  * @package O2System\Session\Handlers
  */
-class OpcacheHandler extends BaseHandler
+class OpcacheHandler extends AbstractHandler
 {
-	/**
-	 * Platform Name
-	 *
-	 * @access  protected
-	 * @var string
-	 */
-	protected $platform = 'opcache';
+    /**
+     * Platform Name
+     *
+     * @access  protected
+     * @var string
+     */
+    protected $platform = 'opcache';
 
-	// ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-	/**
-	 * OpcacheHandler::open
-	 *
-	 * Initialize session
-	 *
-	 * @link  http://php.net/manual/en/sessionhandlerinterface.open.php
-	 *
-	 * @param string $save_path The path where to store/retrieve the session.
-	 * @param string $name      The session name.
-	 *
-	 * @return bool <p>
-	 * The return value (usually TRUE on success, FALSE on failure).
-	 * Note this value is returned internally to PHP for processing.
-	 * </p>
-	 * @since 5.4.0
-	 */
-	public function open( $save_path, $name )
-	{
-		if ( $this->isSupported() === FALSE )
-		{
-			if ( $this->logger instanceof LoggerInterface )
-			{
-				$this->logger->error( 'E_SESSION_PLATFORM_UNSUPPORTED', [ 'Zend OPcache' ] );
-			}
+    /**
+     * OpcacheHandler::open
+     *
+     * Initialize session
+     *
+     * @link  http://php.net/manual/en/sessionhandlerinterface.open.php
+     *
+     * @param string $save_path The path where to store/retrieve the session.
+     * @param string $name      The session name.
+     *
+     * @return bool <p>
+     * The return value (usually TRUE on success, FALSE on failure).
+     * Note this value is returned internally to PHP for processing.
+     * </p>
+     * @since 5.4.0
+     */
+    public function open ( $save_path, $name )
+    {
+        if ( $this->isSupported() === false ) {
+            if ( $this->logger instanceof LoggerInterface ) {
+                $this->logger->error( 'E_SESSION_PLATFORM_UNSUPPORTED', [ 'Zend OPcache' ] );
+            }
 
-			return FALSE;
-		}
+            return false;
+        }
 
-		return TRUE;
-	}
+        return true;
+    }
 
-	// ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-	/**
-	 * OpcacheHandler::close
-	 *
-	 * Close the session
-	 *
-	 * @link  http://php.net/manual/en/sessionhandlerinterface.close.php
-	 * @return bool <p>
-	 *        The return value (usually TRUE on success, FALSE on failure).
-	 *        Note this value is returned internally to PHP for processing.
-	 *        </p>
-	 * @since 5.4.0
-	 */
-	public function close()
-	{
-		if ( isset( $this->lockKey ) )
-		{
-			return apc_delete( $this->lockKey );
-		}
+    /**
+     * OpcacheHandler::isSupported
+     *
+     * Checks if this platform is supported on this system.
+     *
+     * @return bool Returns FALSE if unsupported.
+     */
+    public function isSupported ()
+    {
+        return (bool) ( extension_loaded( 'Zend OPCache' ) && ini_get( 'opcache.enable' ) );
+    }
 
-		return FALSE;
-	}
+    // ------------------------------------------------------------------------
 
-	// ------------------------------------------------------------------------
+    /**
+     * OpcacheHandler::close
+     *
+     * Close the session
+     *
+     * @link  http://php.net/manual/en/sessionhandlerinterface.close.php
+     * @return bool <p>
+     *        The return value (usually TRUE on success, FALSE on failure).
+     *        Note this value is returned internally to PHP for processing.
+     *        </p>
+     * @since 5.4.0
+     */
+    public function close ()
+    {
+        if ( isset( $this->lockKey ) ) {
+            return apcu_delete( $this->lockKey );
+        }
 
-	/**
-	 * OpcacheHandler::destroy
-	 *
-	 * Destroy a session
-	 *
-	 * @link  http://php.net/manual/en/sessionhandlerinterface.destroy.php
-	 *
-	 * @param string $session_id The session ID being destroyed.
-	 *
-	 * @return bool <p>
-	 * The return value (usually TRUE on success, FALSE on failure).
-	 * Note this value is returned internally to PHP for processing.
-	 * </p>
-	 * @since 5.4.0
-	 */
-	public function destroy( $session_id )
-	{
-		if ( isset( $this->lockKey ) )
-		{
-			apc_delete( $this->prefixKey . $session_id );
+        return false;
+    }
 
-			return $this->_destroyCookie();
-		}
+    // ------------------------------------------------------------------------
 
-		return FALSE;
-	}
+    /**
+     * OpcacheHandler::destroy
+     *
+     * Destroy a session
+     *
+     * @link  http://php.net/manual/en/sessionhandlerinterface.destroy.php
+     *
+     * @param string $session_id The session ID being destroyed.
+     *
+     * @return bool <p>
+     * The return value (usually TRUE on success, FALSE on failure).
+     * Note this value is returned internally to PHP for processing.
+     * </p>
+     * @since 5.4.0
+     */
+    public function destroy ( $session_id )
+    {
+        if ( isset( $this->lockKey ) ) {
+            apcu_delete( $this->prefixKey . $session_id );
 
-	// ------------------------------------------------------------------------
+            return $this->destroyCookie();
+        }
 
-	/**
-	 * OpcacheHandler::gc
-	 *
-	 * Cleanup old sessions
-	 *
-	 * @link  http://php.net/manual/en/sessionhandlerinterface.gc.php
-	 *
-	 * @param int $maxlifetime <p>
-	 *                         Sessions that have not updated for
-	 *                         the last maxlifetime seconds will be removed.
-	 *                         </p>
-	 *
-	 * @return bool <p>
-	 * The return value (usually TRUE on success, FALSE on failure).
-	 * Note this value is returned internally to PHP for processing.
-	 * </p>
-	 * @since 5.4.0
-	 */
-	public function gc( $maxlifetime )
-	{
-		// Not necessary, APC takes care of that.
-		return TRUE;
-	}
+        return false;
+    }
 
-	// ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-	/**
-	 * OpcacheHandler::read
-	 *
-	 * Read session data
-	 *
-	 * @link  http://php.net/manual/en/sessionhandlerinterface.read.php
-	 *
-	 * @param string $session_id The session id to read data for.
-	 *
-	 * @return string <p>
-	 * Returns an encoded string of the read data.
-	 * If nothing was read, it must return an empty string.
-	 * Note this value is returned internally to PHP for processing.
-	 * </p>
-	 * @since 5.4.0
-	 */
-	public function read( $session_id )
-	{
-		if ( $this->_lockSession( $session_id ) )
-		{
-			// Needed by write() to detect session_regenerate_id() calls
-			$this->sessionId = $session_id;
+    /**
+     * OpcacheHandler::gc
+     *
+     * Cleanup old sessions
+     *
+     * @link  http://php.net/manual/en/sessionhandlerinterface.gc.php
+     *
+     * @param int $maxlifetime <p>
+     *                         Sessions that have not updated for
+     *                         the last maxlifetime seconds will be removed.
+     *                         </p>
+     *
+     * @return bool <p>
+     * The return value (usually TRUE on success, FALSE on failure).
+     * Note this value is returned internally to PHP for processing.
+     * </p>
+     * @since 5.4.0
+     */
+    public function gc ( $maxlifetime )
+    {
+        // Not necessary, APC takes care of that.
+        return true;
+    }
 
-			$success      = FALSE;
-			$sessionData = apc_fetch( $this->prefixKey . $session_id, $success );
+    // ------------------------------------------------------------------------
 
-			if ( $success )
-			{
-				$this->fingerprint = md5( $sessionData );
+    /**
+     * OpcacheHandler::read
+     *
+     * Read session data
+     *
+     * @link  http://php.net/manual/en/sessionhandlerinterface.read.php
+     *
+     * @param string $session_id The session id to read data for.
+     *
+     * @return string <p>
+     * Returns an encoded string of the read data.
+     * If nothing was read, it must return an empty string.
+     * Note this value is returned internally to PHP for processing.
+     * </p>
+     * @since 5.4.0
+     */
+    public function read ( $session_id )
+    {
+        if ( $this->lockSession( $session_id ) ) {
+            // Needed by write() to detect session_regenerate_id() calls
+            $this->sessionId = $session_id;
 
-				return $sessionData;
-			}
-		}
+            $success = false;
+            $sessionData = apcu_fetch( $this->prefixKey . $session_id, $success );
 
-		return FALSE;
-	}
+            if ( $success ) {
+                $this->fingerprint = md5( $sessionData );
 
-	// ------------------------------------------------------------------------
+                return $sessionData;
+            }
+        }
 
-	/**
-	 * OpcacheHandler::write
-	 *
-	 * Write session data
-	 *
-	 * @link  http://php.net/manual/en/sessionhandlerinterface.write.php
-	 *
-	 * @param string $session_id   The session id.
-	 * @param string $sessionData <p>
-	 *                             The encoded session data. This data is the
-	 *                             result of the PHP internally encoding
-	 *                             the $_SESSION superglobal to a serialized
-	 *                             string and passing it as this parameter.
-	 *                             Please note sessions use an alternative serialization method.
-	 *                             </p>
-	 *
-	 * @return bool <p>
-	 * The return value (usually TRUE on success, FALSE on failure).
-	 * Note this value is returned internally to PHP for processing.
-	 * </p>
-	 * @since 5.4.0
-	 */
-	public function write( $session_id, $sessionData )
-	{
-		if ( $session_id !== $this->sessionId )
-		{
-			if ( ! $this->_lockRelease() OR ! $this->_lockSession( $session_id ) )
-			{
-				return FALSE;
-			}
+        return false;
+    }
 
-			$this->fingerprint = md5( '' );
-			$this->sessionId   = $session_id;
-		}
+    // ------------------------------------------------------------------------
 
-		if ( isset( $this->lockKey ) )
-		{
-			apc_store( $this->lockKey, time(), 300 );
+    /**
+     * OpcacheHandler::_lockSession
+     *
+     * Acquires an (emulated) lock.
+     *
+     * @param    string $session_id Session ID
+     *
+     * @return    bool
+     */
+    protected function lockSession ( $session_id )
+    {
+        if ( isset( $this->lockKey ) ) {
+            return apcu_store( $this->lockKey, time(), 300 );
+        }
 
-			if ( $this->fingerprint !== ( $fingerprint = md5( $sessionData ) ) )
-			{
-				if ( apc_store( $this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ] ) )
-				{
-					$this->fingerprint = $fingerprint;
+        // 30 attempts to obtain a lock, in case another request already has it
+        $lock_key = $this->prefixKey . $session_id . ':lock';
+        $attempt = 0;
 
-					return TRUE;
-				}
+        do {
+            if ( apcu_exists( $lock_key ) ) {
+                sleep( 1 );
+                continue;
+            }
 
-				return FALSE;
-			}
+            if ( ! apcu_store( $lock_key, time(), 300 ) ) {
+                if ( $this->logger instanceof LoggerInterface ) {
+                    $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+                }
 
-			return apc_store( $this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ] );
-		}
+                return false;
+            }
 
-		return FALSE;
-	}
+            $this->lockKey = $lock_key;
+            break;
+        }
+        while ( ++$attempt < 30 );
 
-	// ------------------------------------------------------------------------
+        if ( $attempt === 30 ) {
+            if ( $this->logger instanceof LoggerInterface ) {
+                $this->logger->error( 'E_SESSION_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+            }
 
-	/**
-	 * OpcacheHandler::_lockSession
-	 *
-	 * Acquires an (emulated) lock.
-	 *
-	 * @param    string $session_id Session ID
-	 *
-	 * @return    bool
-	 */
-	protected function _lockSession( $session_id )
-	{
-		if ( isset( $this->lockKey ) )
-		{
-			return apc_store( $this->lockKey, time(), 300 );
-		}
+            return false;
+        }
 
-		// 30 attempts to obtain a lock, in case another request already has it
-		$lock_key = $this->prefixKey . $session_id . ':lock';
-		$attempt  = 0;
+        $this->isLocked = true;
 
-		do
-		{
-			if ( apc_exists( $lock_key ) )
-			{
-				sleep( 1 );
-				continue;
-			}
+        return true;
+    }
 
-			if ( ! apc_store( $lock_key, time(), 300 ) )
-			{
-				if ( $this->logger instanceof LoggerInterface )
-				{
-					$this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
-				}
+    //--------------------------------------------------------------------
 
-				return FALSE;
-			}
+    /**
+     * OpcacheHandler::write
+     *
+     * Write session data
+     *
+     * @link  http://php.net/manual/en/sessionhandlerinterface.write.php
+     *
+     * @param string $session_id   The session id.
+     * @param string $sessionData  <p>
+     *                             The encoded session data. This data is the
+     *                             result of the PHP internally encoding
+     *                             the $_SESSION superglobal to a serialized
+     *                             string and passing it as this parameter.
+     *                             Please note sessions use an alternative serialization method.
+     *                             </p>
+     *
+     * @return bool <p>
+     * The return value (usually TRUE on success, FALSE on failure).
+     * Note this value is returned internally to PHP for processing.
+     * </p>
+     * @since 5.4.0
+     */
+    public function write ( $session_id, $sessionData )
+    {
+        if ( $session_id !== $this->sessionId ) {
+            if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
+                return false;
+            }
 
-			$this->lockKey = $lock_key;
-			break;
-		}
-		while ( ++$attempt < 30 );
+            $this->fingerprint = md5( '' );
+            $this->sessionId = $session_id;
+        }
 
-		if ( $attempt === 30 )
-		{
-			if ( $this->logger instanceof LoggerInterface )
-			{
-				$this->logger->error( 'E_SESSION_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
-			}
+        if ( isset( $this->lockKey ) ) {
+            apcu_store( $this->lockKey, time(), 300 );
 
-			return FALSE;
-		}
+            if ( $this->fingerprint !== ( $fingerprint = md5( $sessionData ) ) ) {
+                if ( apcu_store( $this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ] ) ) {
+                    $this->fingerprint = $fingerprint;
 
-		$this->isLocked = TRUE;
+                    return true;
+                }
 
-		return TRUE;
-	}
+                return false;
+            }
 
-	//--------------------------------------------------------------------
+            return apcu_store( $this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ] );
+        }
 
-	/**
-	 * OpcacheHandler::_lockRelease
-	 *
-	 * Releases a previously acquired lock
-	 *
-	 * @return    bool
-	 */
-	protected function _lockRelease()
-	{
-		if ( isset( $this->lockKey ) AND $this->isLocked )
-		{
-			if ( ! apc_delete( $this->lockKey ) )
-			{
-				if ( $this->logger instanceof LoggerInterface )
-				{
-					$this->logger->error( 'E_SESSION_FREE_LOCK', [ $this->lockKey ] );
-				}
+        return false;
+    }
 
-				return FALSE;
-			}
+    //--------------------------------------------------------------------
 
-			$this->lockKey  = NULL;
-			$this->isLocked = FALSE;
-		}
+    /**
+     * OpcacheHandler::_lockRelease
+     *
+     * Releases a previously acquired lock
+     *
+     * @return    bool
+     */
+    protected function lockRelease ()
+    {
+        if ( isset( $this->lockKey ) AND $this->isLocked ) {
+            if ( ! apcu_delete( $this->lockKey ) ) {
+                if ( $this->logger instanceof LoggerInterface ) {
+                    $this->logger->error( 'E_SESSION_FREE_LOCK', [ $this->lockKey ] );
+                }
 
-		return TRUE;
-	}
+                return false;
+            }
 
-	//--------------------------------------------------------------------
+            $this->lockKey = null;
+            $this->isLocked = false;
+        }
 
-	/**
-	 * OpcacheHandler::isSupported
-	 *
-	 * Checks if this platform is supported on this system.
-	 *
-	 * @return bool Returns FALSE if unsupported.
-	 */
-	public function isSupported()
-	{
-		return (bool) ( extension_loaded( 'opcache' ) );
-	}
+        return true;
+    }
 }
