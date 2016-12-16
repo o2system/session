@@ -68,7 +68,9 @@ class Config extends Registries\Config
             $config[ 'path' ] = rtrim( $config[ 'path' ], DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
 
             if ( ! is_writable( $config[ 'path' ] ) ) {
-                @mkdir( $config[ 'path' ], 0777, true );
+                if ( ! file_exists( $config[ 'path' ] ) ) {
+                    @mkdir( $config[ 'path' ], 0777, true );
+                }
             }
         }
 
