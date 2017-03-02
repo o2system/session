@@ -18,7 +18,7 @@
 spl_autoload_register(
     function ( $className ) {
         if ( $className === 'O2System\Session' ) {
-            require __DIR__ . '/Session.php';
+            require __DIR__ . DIRECTORY_SEPARATOR . 'Session.php';
         } elseif ( strpos( $className, 'O2System\Session\\' ) === false ) {
             return;
         }
