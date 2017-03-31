@@ -50,7 +50,7 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open ( $save_path, $name )
+    public function open( $save_path, $name )
     {
         if ( $this->isSupported() === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -72,9 +72,9 @@ class XcacheHandler extends AbstractHandler
      *
      * @return bool Returns FALSE if unsupported.
      */
-    public function isSupported ()
+    public function isSupported()
     {
-        return (bool) extension_loaded( 'xcache' );
+        return (bool)extension_loaded( 'xcache' );
     }
 
     // ------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class XcacheHandler extends AbstractHandler
      *        </p>
      * @since 5.4.0
      */
-    public function close ()
+    public function close()
     {
         if ( isset( $this->lockKey ) ) {
             return xcache_unset( $this->lockKey );
@@ -117,7 +117,7 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy ( $session_id )
+    public function destroy( $session_id )
     {
         if ( isset( $this->lockKey ) ) {
             xcache_unset( $this->prefixKey . $session_id );
@@ -148,7 +148,7 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc ( $maxlifetime )
+    public function gc( $maxlifetime )
     {
         // Not necessary, XCache takes care of that.
         return true;
@@ -172,7 +172,7 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read ( $session_id )
+    public function read( $session_id )
     {
         if ( $this->lockSession( $session_id ) ) {
             // Needed by write() to detect session_regenerate_id() calls
@@ -198,7 +198,7 @@ class XcacheHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockSession ( $session_id )
+    protected function lockSession( $session_id )
     {
         if ( isset( $this->lockKey ) ) {
             return xcache_set( $this->lockKey, time(), 300 );
@@ -224,8 +224,7 @@ class XcacheHandler extends AbstractHandler
 
             $this->lockKey = $lock_key;
             break;
-        }
-        while ( ++$attempt < 30 );
+        } while ( ++$attempt < 30 );
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -264,7 +263,7 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write ( $session_id, $session_data )
+    public function write( $session_id, $session_data )
     {
         if ( $session_id !== $this->sessionId ) {
             if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
@@ -303,7 +302,7 @@ class XcacheHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockRelease ()
+    protected function lockRelease()
     {
         if ( isset( $this->lockKey ) AND $this->isLocked ) {
             if ( ! xcache_unset( $this->lockKey ) ) {

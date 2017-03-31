@@ -10,25 +10,25 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Session\Registries;
+namespace O2System\Session\Datastructures;
 
 // ------------------------------------------------------------------------
 
-use O2System\Kernel\Registries;
+use O2System\Kernel\Datastructures;
 
 /**
  * Class Config
  *
  * @package O2System\Session\Metadata
  */
-class Config extends Registries\Config
+class Config extends Datastructures\Config
 {
     /**
      * Config::__construct
      *
      * @param array $config
      */
-    public function __construct ( array $config )
+    public function __construct( array $config )
     {
         // Define Session Name
         $config[ 'name' ] = isset( $config[ 'name' ] ) ? $config[ 'name' ] : 'o2session';

@@ -16,7 +16,7 @@ namespace O2System\Session\Handlers;
 
 use O2System\Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
-use O2System\Session\Registries\Config;
+use O2System\Session\Datastructures\Config;
 
 /**
  * Class MemcachedHandler
@@ -47,7 +47,7 @@ class MemcachedHandler extends AbstractHandler
      *
      * @param Config $config
      */
-    public function __construct ( Config $config )
+    public function __construct( Config $config )
     {
         $config->merge(
             [
@@ -76,7 +76,7 @@ class MemcachedHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open ( $save_path, $name )
+    public function open( $save_path, $name )
     {
         if ( class_exists( 'Memcached', false ) ) {
             $this->memcached = new \Memcached();
@@ -155,7 +155,7 @@ class MemcachedHandler extends AbstractHandler
      *        </p>
      * @since 5.4.0
      */
-    public function close ()
+    public function close()
     {
         if ( isset( $this->memcached ) ) {
             isset( $this->lockKey ) AND $this->memcached->delete( $this->lockKey );
@@ -191,7 +191,7 @@ class MemcachedHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy ( $session_id )
+    public function destroy( $session_id )
     {
         if ( isset( $this->memcached, $this->lockKey ) ) {
             $this->memcached->delete( $this->prefixKey . $session_id );
@@ -222,7 +222,7 @@ class MemcachedHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc ( $maxlifetime )
+    public function gc( $maxlifetime )
     {
         // Not necessary, Memcached takes care of that.
         return true;
@@ -246,13 +246,13 @@ class MemcachedHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read ( $session_id )
+    public function read( $session_id )
     {
         if ( isset( $this->memcached ) AND $this->lockSession( $session_id ) ) {
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $session_data = (string) $this->memcached->get( $this->prefixKey . $session_id );
+            $session_data = (string)$this->memcached->get( $this->prefixKey . $session_id );
             $this->fingerprint = md5( $session_data );
 
             return $session_data;
@@ -272,7 +272,7 @@ class MemcachedHandler extends AbstractHandler
      *
      * @return  bool
      */
-    protected function lockSession ( $session_id )
+    protected function lockSession( $session_id )
     {
         if ( isset( $this->lockKey ) ) {
             return $this->memcached->replace( $this->lockKey, time(), 300 );
@@ -298,8 +298,7 @@ class MemcachedHandler extends AbstractHandler
 
             $this->lockKey = $lock_key;
             break;
-        }
-        while ( ++$attempt < 30 );
+        } while ( ++$attempt < 30 );
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -338,7 +337,7 @@ class MemcachedHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write ( $session_id, $session_data )
+    public function write( $session_id, $session_data )
     {
         if ( ! isset( $this->memcached ) ) {
             return false;
@@ -385,11 +384,11 @@ class MemcachedHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockRelease ()
+    protected function lockRelease()
     {
         if ( isset( $this->memcached, $this->lockKey ) AND $this->isLocked ) {
             if ( ! $this->memcached->delete( $this->lockKey ) AND
-                 $this->memcached->getResultCode() !== \Memcached::RES_NOTFOUND
+                $this->memcached->getResultCode() !== \Memcached::RES_NOTFOUND
             ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_FREE_LOCK', [ $this->lockKey ] );
@@ -414,8 +413,8 @@ class MemcachedHandler extends AbstractHandler
      *
      * @return bool Returns FALSE if unsupported.
      */
-    public function isSupported ()
+    public function isSupported()
     {
-        return (bool) ( extension_loaded( 'memcached' ) OR extension_loaded( 'memcache' ) );
+        return (bool)( extension_loaded( 'memcached' ) OR extension_loaded( 'memcache' ) );
     }
 }

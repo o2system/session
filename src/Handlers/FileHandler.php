@@ -77,7 +77,7 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open ( $save_path, $name )
+    public function open( $save_path, $name )
     {
         $this->path = $this->config[ 'path' ];
 
@@ -90,8 +90,8 @@ class FileHandler extends AbstractHandler
         }
 
         $this->filePath = $this->path
-                          . $name . '-' // we'll use the session cookie name as a prefix to avoid collisions
-                          . ( $this->config[ 'match' ]->ip ? md5( $_SERVER[ 'REMOTE_ADDR' ] ) . '-' : '' );
+            . $name . '-' // we'll use the session cookie name as a prefix to avoid collisions
+            . ( $this->config[ 'match' ]->ip ? md5( $_SERVER[ 'REMOTE_ADDR' ] ) . '-' : '' );
 
         return true;
     }
@@ -105,13 +105,13 @@ class FileHandler extends AbstractHandler
      *
      * @return bool Returns FALSE if unsupported.
      */
-    public function isSupported ()
+    public function isSupported()
     {
         if ( ! is_writable( $this->path ) ) {
             @mkdir( $this->path, 0777, true );
         }
 
-        return (bool) is_writable( $this->path );
+        return (bool)is_writable( $this->path );
     }
 
     // ------------------------------------------------------------------------
@@ -131,7 +131,7 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy ( $session_id )
+    public function destroy( $session_id )
     {
         if ( $this->close() ) {
             return file_exists( $this->filePath . $session_id )
@@ -162,7 +162,7 @@ class FileHandler extends AbstractHandler
      *        </p>
      * @since 5.4.0
      */
-    public function close ()
+    public function close()
     {
         if ( is_resource( $this->file ) ) {
             flock( $this->file, LOCK_UN );
@@ -196,7 +196,7 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc ( $maxlifetime )
+    public function gc( $maxlifetime )
     {
         if ( ! is_dir( $this->path ) || ( $directory = opendir( $this->path ) ) === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -211,9 +211,9 @@ class FileHandler extends AbstractHandler
         while ( ( $file = readdir( $directory ) ) !== false ) {
             // If the filename doesn't match this pattern, it's either not a session file or is not ours
             if ( ! preg_match( '/[' . $this->config[ 'name' ] . '-]+[0-9-a-f]+/', $file )
-                 || ! is_file( $this->path . '/' . $file )
-                 || ( $mtime = filemtime( $this->path . '/' . $file ) ) === false
-                 || $mtime > $ts
+                || ! is_file( $this->path . '/' . $file )
+                || ( $mtime = filemtime( $this->path . '/' . $file ) ) === false
+                || $mtime > $ts
             ) {
                 continue;
             }
@@ -250,7 +250,7 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write ( $session_id, $session_data )
+    public function write( $session_id, $session_data )
     {
         // If the two IDs don't match, we have a session_regenerate_id() call
         // and we need to close the old handle and open a new one
@@ -312,7 +312,7 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read ( $session_id )
+    public function read( $session_id )
     {
         // This might seem weird, but PHP 5.6 introduced session_reset(),
         // which re-reads session data

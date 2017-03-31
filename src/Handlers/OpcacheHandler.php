@@ -50,7 +50,7 @@ class OpcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open ( $save_path, $name )
+    public function open( $save_path, $name )
     {
         if ( $this->isSupported() === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -72,9 +72,9 @@ class OpcacheHandler extends AbstractHandler
      *
      * @return bool Returns FALSE if unsupported.
      */
-    public function isSupported ()
+    public function isSupported()
     {
-        return (bool) ( extension_loaded( 'Zend OPCache' ) && ini_get( 'opcache.enable' ) );
+        return (bool)( extension_loaded( 'Zend OPCache' ) && ini_get( 'opcache.enable' ) );
     }
 
     // ------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class OpcacheHandler extends AbstractHandler
      *        </p>
      * @since 5.4.0
      */
-    public function close ()
+    public function close()
     {
         if ( isset( $this->lockKey ) ) {
             return apcu_delete( $this->lockKey );
@@ -117,7 +117,7 @@ class OpcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy ( $session_id )
+    public function destroy( $session_id )
     {
         if ( isset( $this->lockKey ) ) {
             apcu_delete( $this->prefixKey . $session_id );
@@ -148,7 +148,7 @@ class OpcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc ( $maxlifetime )
+    public function gc( $maxlifetime )
     {
         // Not necessary, APC takes care of that.
         return true;
@@ -172,7 +172,7 @@ class OpcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read ( $session_id )
+    public function read( $session_id )
     {
         if ( $this->lockSession( $session_id ) ) {
             // Needed by write() to detect session_regenerate_id() calls
@@ -202,7 +202,7 @@ class OpcacheHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockSession ( $session_id )
+    protected function lockSession( $session_id )
     {
         if ( isset( $this->lockKey ) ) {
             return apcu_store( $this->lockKey, time(), 300 );
@@ -228,8 +228,7 @@ class OpcacheHandler extends AbstractHandler
 
             $this->lockKey = $lock_key;
             break;
-        }
-        while ( ++$attempt < 30 );
+        } while ( ++$attempt < 30 );
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -268,7 +267,7 @@ class OpcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write ( $session_id, $sessionData )
+    public function write( $session_id, $sessionData )
     {
         if ( $session_id !== $this->sessionId ) {
             if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
@@ -307,7 +306,7 @@ class OpcacheHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockRelease ()
+    protected function lockRelease()
     {
         if ( isset( $this->lockKey ) AND $this->isLocked ) {
             if ( ! apcu_delete( $this->lockKey ) ) {

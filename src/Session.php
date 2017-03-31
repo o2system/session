@@ -29,7 +29,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     /**
      * Session Config
      *
-     * @var Kernel\Registries\Config
+     * @var Kernel\Datastructures\Config
      */
     protected $config;
 
@@ -52,11 +52,11 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     /**
      * Session::__construct
      *
-     * @param Kernel\Registries\Config $config
+     * @param Kernel\Datastructures\Config $config
      *
      * @return Session
      */
-    public function __construct ( Kernel\Registries\Config $config )
+    public function __construct( Kernel\Datastructures\Config $config )
     {
         $this->config = $config;
 
@@ -76,28 +76,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     // ------------------------------------------------------------------------
 
     /**
-     * Session::isSupported
-     *
-     * Checks if server is support cache storage platform.
-     *
-     * @param string $platform Platform name.
-     *
-     * @return bool
-     */
-    public static function isSupported ( $platform )
-    {
-        $handlerClassName = '\O2System\Session\Handlers\\' . ucfirst( $platform ) . 'Handler';
-
-        if ( class_exists( $handlerClassName ) ) {
-            return ( new $handlerClassName )->isSupported();
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Session::setLogger
      *
      * Sets a logger instance on the object
@@ -106,7 +84,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return void
      */
-    public function setLogger ( LoggerInterface $logger )
+    public function setLogger( LoggerInterface $logger )
     {
         $this->logger =& $logger;
 
@@ -121,13 +99,35 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     // ------------------------------------------------------------------------
 
     /**
+     * Session::isSupported
+     *
+     * Checks if server is support cache storage platform.
+     *
+     * @param string $platform Platform name.
+     *
+     * @return bool
+     */
+    public static function isSupported( $platform )
+    {
+        $handlerClassName = '\O2System\Session\Handlers\\' . ucfirst( $platform ) . 'Handler';
+
+        if ( class_exists( $handlerClassName ) ) {
+            return ( new $handlerClassName )->isSupported();
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * Session::start
      *
      * Initialize Native PHP Session.
      *
      * @return void
      */
-    public function start ()
+    public function start()
     {
         if ( php_sapi_name() === 'cli' ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -135,7 +135,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             }
 
             return;
-        } elseif ( (bool) ini_get( 'session.auto_start' ) ) {
+        } elseif ( (bool)ini_get( 'session.auto_start' ) ) {
             if ( $this->logger instanceof LoggerInterface ) {
                 $this->logger->error( 'DEBUG_SESSION_AUTO_START_ABORTED' );
             }
@@ -172,13 +172,13 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 
         // Is session ID auto-regeneration configured? (ignoring ajax requests)
         if ( ( empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ||
-               strtolower( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) !== 'xmlhttprequest' ) &&
-             ( $regenerateTime = $this->config[ 'regenerate' ]->lifetime ) > 0
+                strtolower( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) !== 'xmlhttprequest' ) &&
+            ( $regenerateTime = $this->config[ 'regenerate' ]->lifetime ) > 0
         ) {
             if ( ! isset( $_SESSION[ '__o2sessionLastRegenerate' ] ) ) {
                 $_SESSION[ '__o2sessionLastRegenerate' ] = time();
             } elseif ( $_SESSION[ '__o2sessionLastRegenerate' ] < ( time() - $regenerateTime ) ) {
-                $this->regenerate( (bool) $this->config[ 'regenerate' ]->destroy );
+                $this->regenerate( (bool)$this->config[ 'regenerate' ]->destroy );
             }
         }
         // Another work-around ... PHP doesn't seem to send the session cookie
@@ -213,7 +213,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @access  public
      * @return  bool
      */
-    public function isStarted ()
+    public function isStarted()
     {
         if ( php_sapi_name() !== 'cli' ) {
             if ( version_compare( phpversion(), '5.4.0', '>=' ) ) {
@@ -235,7 +235,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return void
      */
-    private function setConfiguration ()
+    private function setConfiguration()
     {
         if ( empty( $this->config[ 'cookie' ]->domain ) ) {
             $this->config[ 'cookie' ]->domain = ( isset( $_SERVER[ 'HTTP_HOST' ] ) ? '.' . $_SERVER[ 'HTTP_HOST' ]
@@ -251,9 +251,9 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         );
 
         if ( empty( $this->config[ 'lifetime' ] ) ) {
-            $this->config[ 'lifetime' ] = (int) ini_get( 'session.gc_maxlifetime' );
+            $this->config[ 'lifetime' ] = (int)ini_get( 'session.gc_maxlifetime' );
         } else {
-            ini_set( 'session.gc_maxlifetime', (int) $this->config[ 'lifetime' ] );
+            ini_set( 'session.gc_maxlifetime', (int)$this->config[ 'lifetime' ] );
         }
 
         // Security is king
@@ -276,7 +276,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return void
      */
-    public function regenerate ( $destroy = false )
+    public function regenerate( $destroy = false )
     {
         $_SESSION[ '__o2sessionLastRegenerate' ] = time();
         session_regenerate_id( $destroy );
@@ -292,7 +292,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return void
      */
-    private function initializeVariables ()
+    private function initializeVariables()
     {
         if ( ! empty( $_SESSION[ '__o2sessionVariables' ] ) ) {
             $currentTime = time();
@@ -323,7 +323,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * - unsets the session id
      * - destroys the session cookie
      */
-    public function stop ()
+    public function stop()
     {
         setcookie(
             $this->config[ 'name' ],
@@ -347,7 +347,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return void
      */
-    public function destroy ()
+    public function destroy()
     {
         session_destroy();
     }
@@ -364,7 +364,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return bool
      */
-    public function __isset ( $offset )
+    public function __isset( $offset )
     {
         return $this->offsetExists( $offset );
     }
@@ -388,9 +388,9 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists ( $offset )
+    public function offsetExists( $offset )
     {
-        return (bool) isset( $_SESSION[ $offset ] );
+        return (bool)isset( $_SESSION[ $offset ] );
     }
 
     // ------------------------------------------------------------------------
@@ -405,7 +405,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return mixed
      */
-    public function &__get ( $offset )
+    public function &__get( $offset )
     {
         if ( $offset === 'id' ) {
             $_SESSION[ 'id' ] = session_id();
@@ -429,7 +429,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @param mixed $offset PHP native session offset.
      * @param mixed $value  PHP native session offset value to set.
      */
-    public function __set ( $offset, $value )
+    public function __set( $offset, $value )
     {
         $this->offsetSet( $offset, $value );
     }
@@ -453,7 +453,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet ( $offset, $value )
+    public function offsetSet( $offset, $value )
     {
         $_SESSION[ $offset ] =& $value;
     }
@@ -474,7 +474,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet ( $offset )
+    public function offsetGet( $offset )
     {
         if ( $offset === 'id' ) {
             $_SESSION[ 'id' ] = session_id();
@@ -495,7 +495,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return void
      */
-    public function __unset ( $offset )
+    public function __unset( $offset )
     {
         $this->offsetUnset( $offset );
     }
@@ -516,7 +516,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset ( $offset )
+    public function offsetUnset( $offset )
     {
         if ( isset( $_SESSION[ $offset ] ) ) {
             unset( $_SESSION[ $offset ] );
@@ -535,7 +535,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *        <b>Traversable</b>
      * @since 5.0.0
      */
-    public function getIterator ()
+    public function getIterator()
     {
         return new \ArrayIterator( $_SESSION );
     }
@@ -556,7 +556,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @param mixed      $offset Flash session variable string offset identifier or associative array of values.
      * @param mixed|null $value  Flash session variable offset value.
      */
-    public function setFlash ( $offset, $value = null )
+    public function setFlash( $offset, $value = null )
     {
         $this->set( $offset, $value );
         $this->markFlash( is_array( $offset ) ? array_keys( $offset ) : $offset );
@@ -578,7 +578,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @param mixed      $offset Session offset or associative array of session values
      * @param mixed|null $value  Session offset value.
      */
-    public function set ( $offset, $value = null )
+    public function set( $offset, $value = null )
     {
         if ( is_array( $offset ) ) {
             foreach ( $offset as $key => &$value ) {
@@ -602,7 +602,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return bool Returns FALSE if any flash session variables are not already set.
      */
-    public function markFlash ( $offset )
+    public function markFlash( $offset )
     {
         if ( is_array( $offset ) ) {
             for ( $i = 0, $c = count( $offset ); $i < $c; $i++ ) {
@@ -642,14 +642,14 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return array|null    The requested property value, or an assoo2systemative array  of them
      */
-    public function getFlash ( $offset = null )
+    public function getFlash( $offset = null )
     {
         if ( isset( $offset ) ) {
             return ( isset( $_SESSION[ '__o2sessionVariables' ], $_SESSION[ '__o2sessionVariables' ][ $offset ], $_SESSION[ $offset ] ) &&
-                     ! is_int( $_SESSION[ '__o2sessionVariables' ][ $offset ] ) ) ? $_SESSION[ $offset ] : null;
+                ! is_int( $_SESSION[ '__o2sessionVariables' ][ $offset ] ) ) ? $_SESSION[ $offset ] : null;
         }
 
-        $flashVariables = [ ];
+        $flashVariables = [];
 
         if ( ! empty( $_SESSION[ '__o2sessionVariables' ] ) ) {
             foreach ( $_SESSION[ '__o2sessionVariables' ] as $offset => &$value ) {
@@ -669,7 +669,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @param string|array $offset Flash session variable string offset identifier or array of offsets.
      */
-    public function keepFlash ( $offset )
+    public function keepFlash( $offset )
     {
         $this->markFlash( $offset );
     }
@@ -683,7 +683,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @param string $offset Flash session variable string offset identifier or array of offsets.
      */
-    public function unsetFlash ( $offset )
+    public function unsetFlash( $offset )
     {
         if ( empty( $_SESSION[ '__o2sessionVariables' ] ) ) {
             return;
@@ -714,13 +714,13 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return array Returns array of flash session variable offsets.
      */
-    public function getFlashOffsets ()
+    public function getFlashOffsets()
     {
         if ( ! isset( $_SESSION[ '__o2sessionVariables' ] ) ) {
-            return [ ];
+            return [];
         }
 
-        $offsets = [ ];
+        $offsets = [];
         foreach ( array_keys( $_SESSION[ '__o2sessionVariables' ] ) as $offset ) {
             is_int( $_SESSION[ '__o2sessionVariables' ][ $offset ] ) OR $offsets[] = $offset;
         }
@@ -739,7 +739,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * @param null  $value  Temporary session variable offset value.
      * @param int   $ttl    Temporary session variable Time-to-live in seconds
      */
-    public function setTemp ( $offset, $value = null, $ttl = 300 )
+    public function setTemp( $offset, $value = null, $ttl = 300 )
     {
         $this->set( $offset, $value );
         $this->markTemp( is_array( $offset ) ? array_keys( $offset ) : $offset, $ttl );
@@ -758,12 +758,12 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return bool Returns FALSE if none temporary session variable is set.
      */
-    public function markTemp ( $offset, $ttl = 300 )
+    public function markTemp( $offset, $ttl = 300 )
     {
         $ttl += time();
 
         if ( is_array( $offset ) ) {
-            $temp = [ ];
+            $temp = [];
 
             foreach ( $offset as $key => $value ) {
                 // Do we have a key => ttl pair, or just a key?
@@ -809,14 +809,14 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return array Returns temporary session variables.
      */
-    public function getTemp ( $offset = null )
+    public function getTemp( $offset = null )
     {
         if ( isset( $offset ) ) {
             return ( isset( $_SESSION[ '__o2sessionVariables' ], $_SESSION[ '__o2sessionVariables' ][ $offset ], $_SESSION[ $offset ] ) &&
-                     is_int( $_SESSION[ '__o2sessionVariables' ][ $offset ] ) ) ? $_SESSION[ $offset ] : null;
+                is_int( $_SESSION[ '__o2sessionVariables' ][ $offset ] ) ) ? $_SESSION[ $offset ] : null;
         }
 
-        $tempVariables = [ ];
+        $tempVariables = [];
 
         if ( ! empty( $_SESSION[ '__o2sessionVariables' ] ) ) {
             foreach ( $_SESSION[ '__o2sessionVariables' ] as $offset => &$value ) {
@@ -836,7 +836,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @param mixed $offset Temporary session variable string offset identifier.
      */
-    public function unsetTemp ( $offset )
+    public function unsetTemp( $offset )
     {
         if ( empty( $_SESSION[ '__o2sessionVariables' ] ) ) {
             return;
@@ -867,13 +867,13 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return array Returns array of temporary session variable offsets identifier.
      */
-    public function getTempOffsets ()
+    public function getTempOffsets()
     {
         if ( ! isset( $_SESSION[ '__o2sessionVariables' ] ) ) {
-            return [ ];
+            return [];
         }
 
-        $offsets = [ ];
+        $offsets = [];
         foreach ( array_keys( $_SESSION[ '__o2sessionVariables' ] ) as $offset ) {
             is_int( $_SESSION[ '__o2sessionVariables' ][ $offset ] ) && $offsets[] = $offset;
         }

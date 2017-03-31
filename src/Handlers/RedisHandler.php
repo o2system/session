@@ -57,7 +57,7 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open ( $save_path, $name )
+    public function open( $save_path, $name )
     {
         if ( class_exists( 'Redis', false ) ) {
             $this->redis = new \Redis();
@@ -93,8 +93,7 @@ class RedisHandler extends AbstractHandler
             }
 
             return true;
-        }
-        catch ( \RedisException $e ) {
+        } catch ( \RedisException $e ) {
             if ( $this->logger instanceof LoggerInterface ) {
                 $this->logger->error( 'E_SESSION_REDIS_CONNECTION_REFUSED', $e->getMessage() );
             }
@@ -117,7 +116,7 @@ class RedisHandler extends AbstractHandler
      *        </p>
      * @since 5.4.0
      */
-    public function close ()
+    public function close()
     {
         if ( isset( $this->redis ) ) {
             try {
@@ -128,8 +127,7 @@ class RedisHandler extends AbstractHandler
                         return false;
                     }
                 }
-            }
-            catch ( \RedisException $e ) {
+            } catch ( \RedisException $e ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_REDIS_ON_CLOSE', $e->getMessage() );
                 }
@@ -160,7 +158,7 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy ( $session_id )
+    public function destroy( $session_id )
     {
         if ( isset( $this->redis, $this->isLocked ) ) {
             if ( ( $result = $this->redis->delete( $this->prefixKey . $session_id ) ) !== 1 ) {
@@ -195,7 +193,7 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc ( $maxlifetime )
+    public function gc( $maxlifetime )
     {
         // Not necessary, Redis takes care of that.
         return true;
@@ -217,13 +215,13 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read ( $session_id )
+    public function read( $session_id )
     {
         if ( isset( $this->redis ) AND $this->lockSession( $session_id ) ) {
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $session_data = (string) $this->redis->get( $this->prefixKey . $session_id );
+            $session_data = (string)$this->redis->get( $this->prefixKey . $session_id );
             $this->fingerprint = md5( $session_data );
 
             return $session_data;
@@ -243,7 +241,7 @@ class RedisHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockSession ( $session_id )
+    protected function lockSession( $session_id )
     {
         if ( isset( $this->lockKey ) ) {
             return $this->redis->setTimeout( $this->lockKey, 300 );
@@ -269,8 +267,7 @@ class RedisHandler extends AbstractHandler
 
             $this->lockKey = $lock_key;
             break;
-        }
-        while ( ++$attempt < 30 );
+        } while ( ++$attempt < 30 );
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
@@ -313,7 +310,7 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write ( $session_id, $session_data )
+    public function write( $session_id, $session_data )
     {
         if ( ! isset( $this->redis ) ) {
             return false;
@@ -355,7 +352,7 @@ class RedisHandler extends AbstractHandler
      *
      * @return bool
      */
-    protected function lockRelease ()
+    protected function lockRelease()
     {
         if ( isset( $this->redis, $this->lockKey ) && $this->isLocked ) {
             if ( ! $this->redis->delete( $this->lockKey ) ) {
@@ -382,8 +379,8 @@ class RedisHandler extends AbstractHandler
      *
      * @return bool Returns FALSE if unsupported.
      */
-    public function isSupported ()
+    public function isSupported()
     {
-        return (bool) extension_loaded( 'redis' );
+        return (bool)extension_loaded( 'redis' );
     }
 }
