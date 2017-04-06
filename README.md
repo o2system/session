@@ -1,5 +1,3 @@
-[![Latest Stable Version](https://poser.pugx.org/o2system/session/v/stable)](https://packagist.org/packages/o2system/session) [![Total Downloads](https://poser.pugx.org/o2system/session/downloads)](https://packagist.org/packages/o2system/session) [![Latest Unstable Version](https://poser.pugx.org/o2system/session/v/unstable)](https://packagist.org/packages/o2system/session) [![License](https://poser.pugx.org/o2system/session/license)](https://packagist.org/packages/o2system/session)
-
 [O2System Session](https://github.com/o2system/session) is an Open Source Native PHP Session Management Handler Library. 
 Allows different cache storage platform to be used. 
 All but file-based storage require specific server requirements, and a Fatal Exception will be thrown if server requirements are not met.
