@@ -1,7 +1,7 @@
 {
   "name": "o2system/session",
   "description": "Open Source PHP Session Management Library",
-  "type": "php-libraries",
+  "type": "package",
   "keywords": [
     "session",
     "php",
@@ -45,6 +45,5 @@
       "src/Session.php"
     ]
   },
-  "minimum-stability": "dev",
-  "prefer-stable": true
+  "minimum-stability": "dev"
 }
