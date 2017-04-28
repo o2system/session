@@ -44,5 +44,7 @@
     "files":[
       "src/Session.php"
     ]
-  }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
