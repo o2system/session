@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# O2System Session
+>>>>>>> origin/master
 [O2System Session](https://github.com/o2system/session) is an Open Source Native PHP Session Management Handler Library. 
 Allows different cache storage platform to be used. 
 All but file-based storage require specific server requirements, and a Fatal Exception will be thrown if server requirements are not met.
@@ -15,14 +19,24 @@ All but file-based storage require specific server requirements, and a Fatal Exc
 | XCache | ```Yes``` | ```Yes``` | https://xcache.lighttpd.net/ |
 | Zend OPCache | ```Yes``` | ```Yes``` | http://php.net/opcache |
 
-### Composer Instalation
-The best way to install O2Session is to use [Composer](https://getcomposer.org)
+Installation
+------------
+The best way to install [O2System Session](https://packagist.org/packages/o2system/session) is to use [Composer](http://getcomposer.org)
 ```
 composer require o2system/session
 ```
-> Packagist: [https://packagist.org/packages/o2system/session](https://packagist.org/packages/o2system/session)
 
-### Usage Example
+Manual Installation
+------------
+1. Download the [master zip file](https://github.com/o2system/session/archive/master.zip).
+2. Extract into your project folder.
+3. Require the autoload.php file.<br>
+```php
+require your_project_folder_path/session/src/autoload.php
+```
+
+Usage Example
+-------------
 ```php
 use O2System\Session;
 
@@ -35,26 +49,27 @@ $session->set('foo', ['bar' => 'something']);
 // Get session userdata
 $foo = $session->get('foo');
 ```
-> More details at the [Documentation](https://www.gitbook.com/book/o2system/session).
 
-### Ideas and Suggestions
-Please kindly mail us at [o2system.framework@gmail.com](mailto:o2system.framework@gmail.com])
+Documentation is available on this repository [wiki](https://github.com/o2system/session/wiki) or visit this repository [github page](https://o2system.github.io/session).
 
-### Bugs and Issues
-Please kindly submit your [issues at Github](https://github.com/o2system/session/issues) so we can track all the issues along development.
+Ideas and Suggestions
+---------------------
+Please kindly mail us at [o2system.framework@gmail.com](mailto:o2system.framework@gmail.com).
 
-### System Requirements
-- PHP 5.4+
-- [Composer](https://getcomposer.org)
-- [O2System Core](https://github.com/o2system/core)
-- [O2System Database](https://github.com/o2system/db) (optional - required when using database handler)
+Bugs and Issues
+---------------
+Please kindly submit your [issues at Github](http://github.com/o2system/session/issues) so we can track all the issues along development and send a [pull request](http://github.com/o2system/session/pulls) to this repository.
 
-### Credits
-|Role|Name|
-|----|----|
-|Founder and Lead Projects|[Steeven Andrian Salim](http://steevenz.com)|
-|Documentation|[Steeven Andrian Salim](http://steevenz.com), [Ayun G. Aribowo](http://ayun.co)|
-| Github Pages Designer and Writer | [Teguh Rianto](http://teguhrianto.tk)
+System Requirements
+-------------------
+- PHP 5.6+
+- [Composer](http://getcomposer.org)
 
-### Supported By
+Credits
+-------
+* Founder and Lead Projects: [Steeven Andrian Salim](http://steevenz.com)
+* Github Pages Designer and Writer: [Teguh Rianto](http://teguhrianto.tk)
+
+Supported By
+------------
 * [Zend Technologies Ltd.](http://zend.com)
