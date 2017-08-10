@@ -71,6 +71,8 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         if ( function_exists( 'logger' ) ) {
             $this->setLogger( logger() );
         }
+
+        $this->setConfiguration();
     }
 
     // ------------------------------------------------------------------------
@@ -155,18 +157,8 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             ini_set( 'session.name', $this->config[ 'name' ] );
         }
 
-        // Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
-        if ( isset( $_COOKIE[ $this->config[ 'name' ] ] ) && (
-                ! is_string( $_COOKIE[ $this->config[ 'name' ] ] ) ||
-                ! preg_match( '/^[0-9a-f]{40}$/', $_COOKIE[ $this->config[ 'name' ] ] )
-            )
-        ) {
-            unset( $_COOKIE[ $this->config[ 'name' ] ] );
-        }
-
         /* Check if session is activated or not yet */
-        if ( $this->isStarted() ) {
-            $this->setConfiguration();
+        if ( ! $this->isStarted() ) {
             session_start();
         }
 
@@ -216,11 +208,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     public function isStarted()
     {
         if ( php_sapi_name() !== 'cli' ) {
-            if ( version_compare( phpversion(), '5.4.0', '>=' ) ) {
-                return session_status() === PHP_SESSION_ACTIVE ? true : false;
-            } else {
-                return session_id() === '' ? false : true;
-            }
+            return session_status() == PHP_SESSION_NONE ? false : true;
         }
 
         return false;
@@ -238,16 +226,18 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     private function setConfiguration()
     {
         if ( empty( $this->config[ 'cookie' ]->domain ) ) {
-            $this->config[ 'cookie' ]->domain = ( isset( $_SERVER[ 'HTTP_HOST' ] ) ? '.' . $_SERVER[ 'HTTP_HOST' ]
-                : ( isset( $_SERVER[ 'SERVER_NAME' ] ) ? '.' . $_SERVER[ 'SERVER_NAME' ] : null ) );
+            $this->config[ 'cookie' ]->domain = ( isset( $_SERVER[ 'HTTP_HOST' ] ) ? $_SERVER[ 'HTTP_HOST' ]
+                : ( isset( $_SERVER[ 'SERVER_NAME' ] ) ? $_SERVER[ 'SERVER_NAME' ] : null ) );
         }
+
+        $this->config[ 'cookie' ]->domain = ltrim( $this->config[ 'cookie' ]->domain, '.' );
 
         session_set_cookie_params(
             $this->config[ 'cookie' ]->lifetime,
             $this->config[ 'cookie' ]->path,
             $this->config[ 'cookie' ]->domain,
             $this->config[ 'cookie' ]->secure,
-            true // HTTP only; Yes, this is intentional and not configurable for security reasons.
+            $this->config[ 'cookie' ]->httpOnly
         );
 
         if ( empty( $this->config[ 'lifetime' ] ) ) {
@@ -266,6 +256,55 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     }
 
     //--------------------------------------------------------------------
+
+    private function getRegexpId()
+    {
+        $sidRegexp = null;
+
+        if ( PHP_VERSION_ID < 70100 ) {
+            $bits = 160;
+            $hashFunction = ini_get( 'session.hash_function' );
+            if ( ctype_digit( $hashFunction ) ) {
+                if ( $hashFunction !== '1' ) {
+                    ini_set( 'session.hash_function', 1 );
+                    $bits = 160;
+                }
+            } elseif ( ! in_array( $hashFunction, hash_algos(), true ) ) {
+                ini_set( 'session.hash_function', 1 );
+                $bits = 160;
+            } elseif ( ( $bits = strlen( hash( $hashFunction, 'dummy', false ) ) * 4 ) < 160 ) {
+                ini_set( 'session.hash_function', 1 );
+                $bits = 160;
+            }
+            $bitsPerCharacter = (int)ini_get( 'session.hash_bits_per_character' );
+            $sidLength = (int)ceil( $bits / $bitsPerCharacter );
+        } else {
+            $bitsPerCharacter = (int)ini_get( 'session.sid_bits_per_character' );
+            $sidLength = (int)ini_get( 'session.sid_length' );
+            if ( ( $sidLength * $bitsPerCharacter ) < 160 ) {
+                $bits = ( $sidLength * $bitsPerCharacter );
+                // Add as many more characters as necessary to reach at least 160 bits
+                $sidLength += (int)ceil( ( 160 % $bits ) / $bitsPerCharacter );
+                ini_set( 'session.sid_length', $sidLength );
+            }
+        }
+        // Yes, 4,5,6 are the only known possible values as of 2016-10-27
+        switch ( $bitsPerCharacter ) {
+            case 4:
+                $sidRegexp = '[0-9a-f]';
+                break;
+            case 5:
+                $sidRegexp = '[0-9a-v]';
+                break;
+            case 6:
+                $sidRegexp = '[0-9a-zA-Z,-]';
+                break;
+        }
+
+        $sidRegexp .= '{' . $sidLength . '}';
+
+        return $sidRegexp;
+    }
 
     /**
      * Session::regenerate
@@ -565,6 +604,20 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     //--------------------------------------------------------------------
 
     /**
+     * Session::get
+     *
+     * @param string $offset Session offset or associative array of session values
+     *
+     * @return mixed
+     */
+    public function get( $offset )
+    {
+        return $this->offsetGet( $offset );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * Session::set
      *
      * Sets session data into PHP native session global variable.
@@ -575,8 +628,8 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      * If $offset is an array, it is expected to be an array of key/value pairs
      * to be set as session values.
      *
-     * @param mixed      $offset Session offset or associative array of session values
-     * @param mixed|null $value  Session offset value.
+     * @param string $offset Session offset or associative array of session values
+     * @param mixed  $value  Session offset value.
      */
     public function set( $offset, $value = null )
     {
