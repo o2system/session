@@ -178,13 +178,13 @@ class XcacheHandler extends AbstractHandler
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $session_data = xcache_get( $this->prefixKey . $session_id );
-            $this->fingerprint = md5( $session_data );
+            $sessionData = xcache_get( $this->prefixKey . $session_id );
+            $this->fingerprint = md5( $sessionData );
 
-            return $session_data;
+            return $sessionData;
         }
 
-        return false;
+        return '';
     }
 
     // ------------------------------------------------------------------------
@@ -205,16 +205,16 @@ class XcacheHandler extends AbstractHandler
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
-        $lock_key = $this->prefixKey . $session_id . ':lock';
+        $lockKey = $this->prefixKey . $session_id . ':lock';
         $attempt = 0;
 
         do {
-            if ( xcache_isset( $lock_key ) ) {
+            if ( xcache_isset( $lockKey ) ) {
                 sleep( 1 );
                 continue;
             }
 
-            if ( ! xcache_set( $lock_key, time(), 300 ) ) {
+            if ( ! xcache_set( $lockKey, time(), 300 ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
@@ -222,7 +222,7 @@ class XcacheHandler extends AbstractHandler
                 return false;
             }
 
-            $this->lockKey = $lock_key;
+            $this->lockKey = $lockKey;
             break;
         } while ( ++$attempt < 30 );
 

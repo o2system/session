@@ -188,7 +188,7 @@ class ApcHandler extends AbstractHandler
             }
         }
 
-        return false;
+        return '';
     }
 
     // ------------------------------------------------------------------------
@@ -209,16 +209,16 @@ class ApcHandler extends AbstractHandler
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
-        $lock_key = $this->prefixKey . $session_id . ':lock';
+        $lockKey = $this->prefixKey . $session_id . ':lock';
         $attempt = 0;
 
         do {
-            if ( apc_exists( $lock_key ) ) {
+            if ( apc_exists( $lockKey ) ) {
                 sleep( 1 );
                 continue;
             }
 
-            if ( ! apc_store( $lock_key, time(), 300 ) ) {
+            if ( ! apc_store( $lockKey, time(), 300 ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
@@ -226,7 +226,7 @@ class ApcHandler extends AbstractHandler
                 return false;
             }
 
-            $this->lockKey = $lock_key;
+            $this->lockKey = $lockKey;
             break;
         } while ( ++$attempt < 30 );
 

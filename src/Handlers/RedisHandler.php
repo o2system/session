@@ -16,6 +16,7 @@ namespace O2System\Session\Handlers;
 
 use O2System\Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
+use O2System\Session\Datastructures\Config;
 
 /**
  * Class RedisHandler
@@ -40,6 +41,26 @@ class RedisHandler extends AbstractHandler
     protected $redis;
 
     // ------------------------------------------------------------------------
+
+    /**
+     * RedisHandler::__construct
+     *
+     * @param Config $config
+     */
+    public function __construct( Config $config )
+    {
+        $config->merge(
+            [
+                'socket'   => 'tcp', // 'tcp' or 'unix'
+                'host'     => 'localhost', // '103.219.249.198', //
+                'port'     => 6379, // 17883, //
+                'password' => null, // (optional)
+                'timeout'  => 5,
+            ]
+        );
+
+        parent::__construct( $config );
+    }
 
     /**
      * RedisHandler::open
@@ -221,13 +242,13 @@ class RedisHandler extends AbstractHandler
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $session_data = (string)$this->redis->get( $this->prefixKey . $session_id );
-            $this->fingerprint = md5( $session_data );
+            $sessionData = (string)$this->redis->get( $this->prefixKey . $session_id );
+            $this->fingerprint = md5( $sessionData );
 
-            return $session_data;
+            return $sessionData;
         }
 
-        return false;
+        return '';
     }
 
     // ------------------------------------------------------------------------
@@ -248,16 +269,16 @@ class RedisHandler extends AbstractHandler
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
-        $lock_key = $this->prefixKey . $session_id . ':lock';
+        $lockKey = $this->prefixKey . $session_id . ':lock';
         $attempt = 0;
 
         do {
-            if ( ( $ttl = $this->redis->ttl( $lock_key ) ) > 0 ) {
+            if ( ( $ttl = $this->redis->ttl( $lockKey ) ) > 0 ) {
                 sleep( 1 );
                 continue;
             }
 
-            if ( ! $this->redis->setex( $lock_key, 300, time() ) ) {
+            if ( ! $this->redis->setex( $lockKey, 300, time() ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
@@ -265,7 +286,7 @@ class RedisHandler extends AbstractHandler
                 return false;
             }
 
-            $this->lockKey = $lock_key;
+            $this->lockKey = $lockKey;
             break;
         } while ( ++$attempt < 30 );
 

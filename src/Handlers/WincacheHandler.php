@@ -179,16 +179,16 @@ class WincacheHandler extends AbstractHandler
             $this->sessionId = $session_id;
 
             $success = false;
-            $session_data = wincache_ucache_get( $this->prefixKey . $session_id, $success );
+            $sessionData = wincache_ucache_get( $this->prefixKey . $session_id, $success );
 
             if ( $success ) {
-                $this->fingerprint = md5( $session_data );
+                $this->fingerprint = md5( $sessionData );
 
-                return $session_data;
+                return $sessionData;
             }
         }
 
-        return false;
+        return '';
     }
 
     // ------------------------------------------------------------------------
@@ -209,16 +209,16 @@ class WincacheHandler extends AbstractHandler
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
-        $lock_key = $this->prefixKey . $session_id . ':lock';
+        $lockKey = $this->prefixKey . $session_id . ':lock';
         $attempt = 0;
 
         do {
-            if ( wincache_ucache_exists( $lock_key ) ) {
+            if ( wincache_ucache_exists( $lockKey ) ) {
                 sleep( 1 );
                 continue;
             }
 
-            if ( ! wincache_ucache_set( $lock_key, time(), 300 ) ) {
+            if ( ! wincache_ucache_set( $lockKey, time(), 300 ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
@@ -226,7 +226,7 @@ class WincacheHandler extends AbstractHandler
                 return false;
             }
 
-            $this->lockKey = $lock_key;
+            $this->lockKey = $lockKey;
             break;
         } while ( ++$attempt < 30 );
 

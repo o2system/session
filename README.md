@@ -6,17 +6,19 @@ All but file-based storage require specific server requirements, and a Fatal Exc
 [O2System Session](https://github.com/o2system/session) is build for working more powerful with [O2System PHP Framework](https://github.com/o2system/o2system), but also can be integrated with other frameworks as standalone PHP Classes Library with limited features.
 
 ### Supported Storage Engines Handlers
-| Engine | Support | Tested  | &nbsp; |
+| Engine | 5.6+ | 7.0+  | &nbsp; |
 | ------------- |:-------------:|:-----:| ----- |
-| APC | ```Yes``` | ```Yes``` | http://php.net/apc |
+| APC | ```Yes``` | ```No``` | http://php.net/apc |
+| APCu | ```Yes``` | ```Yes``` | http://php.net/apcu |
 | File | ```Yes``` | ```Yes``` | http://php.net/file |
+| Memcache | ```Yes``` | ```Yes``` | http://php.net/memcache |
 | Memcached | ```Yes``` | ```Yes``` | http://php.net/memcached |
 | Redis | ```Yes``` | ```Yes``` | http://redis.io |
 | Wincache | ```Yes``` | ```Yes``` | http://php.net/wincache |
-| XCache | ```Yes``` | ```Yes``` | https://xcache.lighttpd.net/ |
+| XCache | ```Yes``` | ```No``` | https://xcache.lighttpd.net/ |
 | Zend OPCache | ```Yes``` | ```Yes``` | http://php.net/opcache |
 
-### Composer Instalation
+### Composer Installation
 The best way to install O2System Session is to use [Composer](https://getcomposer.org)
 ```
 composer require o2system/session --prefer-dist dev-master

@@ -81,8 +81,6 @@ class MemcachedHandler extends AbstractHandler
         if ( class_exists( 'Memcached', false ) ) {
             $this->memcached = new \Memcached();
             $this->memcached->setOption( \Memcached::OPT_BINARY_PROTOCOL, true ); // required for touch() usage
-        } elseif ( class_exists( 'Memcache', false ) ) {
-            $this->memcached = new \Memcache();
         } else {
             if ( $this->logger instanceof LoggerInterface ) {
                 $this->logger->error( 'E_SESSION_PLATFORM_UNSUPPORTED', [ 'Memcache' ] );
@@ -96,38 +94,18 @@ class MemcachedHandler extends AbstractHandler
                 isset( $setup[ 'port' ] ) OR $setup[ 'port' ] = 11211;
                 isset( $setup[ 'weight' ] ) OR $setup[ 'weight' ] = 1;
 
-                if ( $this->memcached instanceof \Memcache ) {
-                    // Third parameter is persistance and defaults to TRUE.
-                    $this->memcached->addServer(
-                        $setup[ 'host' ],
-                        $setup[ 'port' ],
-                        true,
-                        $setup[ 'weight' ]
-                    );
-                } elseif ( $this->memcached instanceof \Memcached ) {
-                    $this->memcached->addServer(
-                        $setup[ 'host' ],
-                        $setup[ 'port' ],
-                        $setup[ 'weight' ]
-                    );
-                }
+                $this->memcached->addServer(
+                    $setup[ 'host' ],
+                    $setup[ 'port' ],
+                    $setup[ 'weight' ]
+                );
             }
         } else {
-            if ( $this->memcached instanceof \Memcache ) {
-                // Third parameter is persistance and defaults to TRUE.
-                $this->memcached->addServer(
-                    $this->config[ 'host' ],
-                    $this->config[ 'port' ],
-                    true,
-                    $this->config[ 'weight' ]
-                );
-            } elseif ( $this->memcached instanceof \Memcached ) {
-                $this->memcached->addServer(
-                    $this->config[ 'host' ],
-                    $this->config[ 'port' ],
-                    $this->config[ 'weight' ]
-                );
-            }
+            $this->memcached->addServer(
+                $this->config[ 'host' ],
+                $this->config[ 'port' ],
+                $this->config[ 'weight' ]
+            );
         }
 
         if ( $this->memcached->getVersion() === false ) {
@@ -252,13 +230,13 @@ class MemcachedHandler extends AbstractHandler
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $session_data = (string)$this->memcached->get( $this->prefixKey . $session_id );
-            $this->fingerprint = md5( $session_data );
+            $sessionData = (string)$this->memcached->get( $this->prefixKey . $session_id );
+            $this->fingerprint = md5( $sessionData );
 
-            return $session_data;
+            return $sessionData;
         }
 
-        return false;
+        return '';
     }
 
     // ------------------------------------------------------------------------
@@ -279,16 +257,16 @@ class MemcachedHandler extends AbstractHandler
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
-        $lock_key = $this->prefixKey . $session_id . ':lock';
+        $lockKey = $this->prefixKey . $session_id . ':lock';
         $attempt = 0;
 
         do {
-            if ( $this->memcached->get( $lock_key ) ) {
+            if ( $this->memcached->get( $lockKey ) ) {
                 sleep( 1 );
                 continue;
             }
 
-            if ( ! @$this->memcached->set( $lock_key, time(), 300 ) ) {
+            if ( ! @$this->memcached->set( $lockKey, time(), 300 ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
                     $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
@@ -296,7 +274,7 @@ class MemcachedHandler extends AbstractHandler
                 return false;
             }
 
-            $this->lockKey = $lock_key;
+            $this->lockKey = $lockKey;
             break;
         } while ( ++$attempt < 30 );
 
@@ -415,6 +393,6 @@ class MemcachedHandler extends AbstractHandler
      */
     public function isSupported()
     {
-        return (bool)( extension_loaded( 'memcached' ) OR extension_loaded( 'memcache' ) );
+        return (bool) extension_loaded( 'memcached' );
     }
 }

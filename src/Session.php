@@ -257,55 +257,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 
     //--------------------------------------------------------------------
 
-    private function getRegexpId()
-    {
-        $sidRegexp = null;
-
-        if ( PHP_VERSION_ID < 70100 ) {
-            $bits = 160;
-            $hashFunction = ini_get( 'session.hash_function' );
-            if ( ctype_digit( $hashFunction ) ) {
-                if ( $hashFunction !== '1' ) {
-                    ini_set( 'session.hash_function', 1 );
-                    $bits = 160;
-                }
-            } elseif ( ! in_array( $hashFunction, hash_algos(), true ) ) {
-                ini_set( 'session.hash_function', 1 );
-                $bits = 160;
-            } elseif ( ( $bits = strlen( hash( $hashFunction, 'dummy', false ) ) * 4 ) < 160 ) {
-                ini_set( 'session.hash_function', 1 );
-                $bits = 160;
-            }
-            $bitsPerCharacter = (int)ini_get( 'session.hash_bits_per_character' );
-            $sidLength = (int)ceil( $bits / $bitsPerCharacter );
-        } else {
-            $bitsPerCharacter = (int)ini_get( 'session.sid_bits_per_character' );
-            $sidLength = (int)ini_get( 'session.sid_length' );
-            if ( ( $sidLength * $bitsPerCharacter ) < 160 ) {
-                $bits = ( $sidLength * $bitsPerCharacter );
-                // Add as many more characters as necessary to reach at least 160 bits
-                $sidLength += (int)ceil( ( 160 % $bits ) / $bitsPerCharacter );
-                ini_set( 'session.sid_length', $sidLength );
-            }
-        }
-        // Yes, 4,5,6 are the only known possible values as of 2016-10-27
-        switch ( $bitsPerCharacter ) {
-            case 4:
-                $sidRegexp = '[0-9a-f]';
-                break;
-            case 5:
-                $sidRegexp = '[0-9a-v]';
-                break;
-            case 6:
-                $sidRegexp = '[0-9a-zA-Z,-]';
-                break;
-        }
-
-        $sidRegexp .= '{' . $sidLength . '}';
-
-        return $sidRegexp;
-    }
-
     /**
      * Session::regenerate
      *

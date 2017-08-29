@@ -349,7 +349,7 @@ class FileHandler extends AbstractHandler
             rewind( $this->file );
         }
 
-        $session_data = '';
+        $sessionData = '';
         for ( $read = 0, $length = filesize( $this->filePath . $session_id ); $read < $length; $read += strlen(
             $buffer
         ) ) {
@@ -357,11 +357,11 @@ class FileHandler extends AbstractHandler
                 break;
             }
 
-            $session_data .= $buffer;
+            $sessionData .= $buffer;
         }
 
-        $this->fingerprint = md5( $session_data );
+        $this->fingerprint = md5( $sessionData );
 
-        return $session_data;
+        return $sessionData;
     }
 }
