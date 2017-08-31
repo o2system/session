@@ -21,7 +21,7 @@ All but file-based storage require specific server requirements, and a Fatal Exc
 ### Composer Installation
 The best way to install O2System Session is to use [Composer](https://getcomposer.org)
 ```
-composer require o2system/session --prefer-dist dev-master
+composer require o2system/session
 ```
 > Packagist: [https://packagist.org/packages/o2system/session](https://packagist.org/packages/o2system/session)
 
