@@ -1,6 +1,6 @@
 # O2System Session
 [O2System Session](https://github.com/o2system/session) is an Open Source Native PHP Session Management Handler Library.
-Allows different cache storage platform to be used.
+It allows different cache storage platform to be used.
 All but file-based storage require specific server requirements, and a Fatal Exception will be thrown if server requirements are not met.
 
 [O2System Session](https://github.com/o2system/session) is build for working more powerful with [O2System PHP Framework](https://github.com/o2system/o2system), but also can be integrated with other frameworks as standalone PHP Classes Library with limited features.
