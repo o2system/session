@@ -83,7 +83,7 @@ class FileHandler extends AbstractHandler
 
         if ( $this->isSupported() === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_FILE_UNSUPPORTED', [ $this->path ] );
+                $this->logger->error( 'SESSION_E_FILE_UNSUPPORTED', [ $this->path ] );
             }
 
             return false;
@@ -200,7 +200,7 @@ class FileHandler extends AbstractHandler
     {
         if ( ! is_dir( $this->path ) || ( $directory = opendir( $this->path ) ) === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_FILE_ON_GC', [ $this->path ] );
+                $this->logger->error( 'SESSION_E_FILE_ON_GC', [ $this->path ] );
             }
 
             return false;
@@ -282,7 +282,7 @@ class FileHandler extends AbstractHandler
                 $this->fingerprint = md5( substr( $session_data, 0, $written ) );
 
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_FILE_ON_WRITE' );
+                    $this->logger->error( 'SESSION_E_FILE_ON_WRITE' );
                 }
 
                 return false;
@@ -319,7 +319,7 @@ class FileHandler extends AbstractHandler
         if ( $this->file === null ) {
             if ( ( $this->file = fopen( $this->filePath . $session_id, 'c+b' ) ) === false ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_FILE_ON_READ', [ $this->filePath . $session_id ] );
+                    $this->logger->error( 'SESSION_E_FILE_ON_READ', [ $this->filePath . $session_id ] );
                 }
 
                 return false;
@@ -330,7 +330,7 @@ class FileHandler extends AbstractHandler
                 $this->file = null;
 
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_ON_LOCK', [ $this->filePath . $session_id ] );
+                    $this->logger->error( 'SESSION_E_ON_LOCK', [ $this->filePath . $session_id ] );
                 }
 
                 return false;

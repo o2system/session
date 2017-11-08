@@ -83,7 +83,7 @@ class MemcachedHandler extends AbstractHandler
             $this->memcached->setOption( \Memcached::OPT_BINARY_PROTOCOL, true ); // required for touch() usage
         } else {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_PLATFORM_UNSUPPORTED', [ 'Memcache' ] );
+                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ 'Memcache' ] );
             }
 
             return false;
@@ -110,7 +110,7 @@ class MemcachedHandler extends AbstractHandler
 
         if ( $this->memcached->getVersion() === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_MEMCACHED_CONNECTION_REFUSED' );
+                $this->logger->error( 'SESSION_E_MEMCACHED_CONNECTION_REFUSED' );
             }
 
             return false;
@@ -268,7 +268,7 @@ class MemcachedHandler extends AbstractHandler
 
             if ( ! @$this->memcached->set( $lockKey, time(), 300 ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
 
                 return false;
@@ -280,7 +280,7 @@ class MemcachedHandler extends AbstractHandler
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
             }
 
             return false;
@@ -369,7 +369,7 @@ class MemcachedHandler extends AbstractHandler
                 $this->memcached->getResultCode() !== \Memcached::RES_NOTFOUND
             ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_FREE_LOCK', [ $this->lockKey ] );
+                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
                 }
 
                 return false;

@@ -84,7 +84,7 @@ class RedisHandler extends AbstractHandler
             $this->redis = new \Redis();
         } else {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_PLATFORM_UNSUPPORTED', [ 'Redis' ] );
+                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ 'Redis' ] );
             }
 
             return false;
@@ -99,7 +99,7 @@ class RedisHandler extends AbstractHandler
             )
             ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_REDIS_CONNECTION_FAILED', [ 'Redis' ] );
+                    $this->logger->error( 'SESSION_E_REDIS_CONNECTION_FAILED', [ 'Redis' ] );
                 }
 
                 return false;
@@ -107,7 +107,7 @@ class RedisHandler extends AbstractHandler
 
             if ( isset( $this->config[ 'password' ] ) AND ! $this->redis->auth( $this->config[ 'password' ] ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_REDIS_AUTHENTICATION_FAILED', [ 'Redis' ] );
+                    $this->logger->error( 'SESSION_E_REDIS_AUTHENTICATION_FAILED', [ 'Redis' ] );
                 }
 
                 return false;
@@ -116,7 +116,7 @@ class RedisHandler extends AbstractHandler
             return true;
         } catch ( \RedisException $e ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_REDIS_CONNECTION_REFUSED', $e->getMessage() );
+                $this->logger->error( 'SESSION_E_REDIS_CONNECTION_REFUSED', $e->getMessage() );
             }
 
             return false;
@@ -150,7 +150,7 @@ class RedisHandler extends AbstractHandler
                 }
             } catch ( \RedisException $e ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_REDIS_ON_CLOSE', $e->getMessage() );
+                    $this->logger->error( 'SESSION_E_REDIS_ON_CLOSE', $e->getMessage() );
                 }
             }
 
@@ -184,7 +184,7 @@ class RedisHandler extends AbstractHandler
         if ( isset( $this->redis, $this->isLocked ) ) {
             if ( ( $result = $this->redis->delete( $this->prefixKey . $session_id ) ) !== 1 ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_REDIS_ON_DELETE', var_export( $result, true ) );
+                    $this->logger->error( 'SESSION_E_REDIS_ON_DELETE', var_export( $result, true ) );
                 }
             }
 
@@ -280,7 +280,7 @@ class RedisHandler extends AbstractHandler
 
             if ( ! $this->redis->setex( $lockKey, 300, time() ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
 
                 return false;
@@ -292,13 +292,13 @@ class RedisHandler extends AbstractHandler
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
             }
 
             return false;
         } elseif ( $ttl === -1 ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_OBTAIN_LOCK_TTL', [ $this->prefixKey . $session_id ] );
+                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_TTL', [ $this->prefixKey . $session_id ] );
             }
         }
 
@@ -378,7 +378,7 @@ class RedisHandler extends AbstractHandler
         if ( isset( $this->redis, $this->lockKey ) && $this->isLocked ) {
             if ( ! $this->redis->delete( $this->lockKey ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_FREE_LOCK', [ $this->lockKey ] );
+                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
                 }
 
                 return false;

@@ -54,7 +54,7 @@ class XcacheHandler extends AbstractHandler
     {
         if ( $this->isSupported() === false ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_PLATFORM_UNSUPPORTED', [ $this->platform ] );
+                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ $this->platform ] );
             }
 
             return false;
@@ -216,7 +216,7 @@ class XcacheHandler extends AbstractHandler
 
             if ( ! xcache_set( $lockKey, time(), 300 ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
                 }
 
                 return false;
@@ -228,7 +228,7 @@ class XcacheHandler extends AbstractHandler
 
         if ( $attempt === 30 ) {
             if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'E_SESSION_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
             }
 
             return false;
@@ -307,7 +307,7 @@ class XcacheHandler extends AbstractHandler
         if ( isset( $this->lockKey ) AND $this->isLocked ) {
             if ( ! xcache_unset( $this->lockKey ) ) {
                 if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'E_SESSION_FREE_LOCK', [ $this->lockKey ] );
+                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
                 }
 
                 return false;

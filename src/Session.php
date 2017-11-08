@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System;
@@ -58,6 +59,10 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      */
     public function __construct( Kernel\Datastructures\Config $config )
     {
+        language()
+            ->addFilePath( __DIR__ . DIRECTORY_SEPARATOR )
+            ->loadFile( 'session' );
+
         $this->config = $config;
 
         if ( $this->config->offsetExists( 'handler' ) ) {
@@ -137,7 +142,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             }
 
             return;
-        } elseif ( (bool)ini_get( 'session.auto_start' ) ) {
+        } elseif ( (bool) ini_get( 'session.auto_start' ) ) {
             if ( $this->logger instanceof LoggerInterface ) {
                 $this->logger->error( 'DEBUG_SESSION_AUTO_START_ABORTED' );
             }
@@ -170,7 +175,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             if ( ! isset( $_SESSION[ '__o2sessionLastRegenerate' ] ) ) {
                 $_SESSION[ '__o2sessionLastRegenerate' ] = time();
             } elseif ( $_SESSION[ '__o2sessionLastRegenerate' ] < ( time() - $regenerateTime ) ) {
-                $this->regenerate( (bool)$this->config[ 'regenerate' ]->destroy );
+                $this->regenerate( (bool) $this->config[ 'regenerate' ]->destroy );
             }
         }
         // Another work-around ... PHP doesn't seem to send the session cookie
@@ -241,9 +246,9 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         );
 
         if ( empty( $this->config[ 'lifetime' ] ) ) {
-            $this->config[ 'lifetime' ] = (int)ini_get( 'session.gc_maxlifetime' );
+            $this->config[ 'lifetime' ] = (int) ini_get( 'session.gc_maxlifetime' );
         } else {
-            ini_set( 'session.gc_maxlifetime', (int)$this->config[ 'lifetime' ] );
+            ini_set( 'session.gc_maxlifetime', (int) $this->config[ 'lifetime' ] );
         }
 
         // Security is king
@@ -380,7 +385,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      */
     public function offsetExists( $offset )
     {
-        return (bool)isset( $_SESSION[ $offset ] );
+        return (bool) isset( $_SESSION[ $offset ] );
     }
 
     // ------------------------------------------------------------------------
