@@ -433,6 +433,23 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * @return bool
      */
+    public function has($offset)
+    {
+        return $this->offsetExists($offset);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Session::__isset
+     *
+     * Implementing magic method __isset to simplify when checks if offset exists on PHP native session variable,
+     * just simply calling isset( $session[ 'offset' ] ).
+     *
+     * @param mixed $offset PHP native session offset.
+     *
+     * @return bool
+     */
     public function __isset($offset)
     {
         return $this->offsetExists($offset);
