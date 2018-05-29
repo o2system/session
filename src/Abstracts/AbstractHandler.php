@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Session\Abstracts;
@@ -92,11 +93,11 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      *
      * @return AbstractHandler
      */
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
         $this->config = $config;
-        $this->config->offsetUnset( 'handler' );
-        $this->setPrefixKey( $this->config[ 'name' ] );
+        $this->config->offsetUnset('handler');
+        $this->setPrefixKey($this->config[ 'name' ]);
     }
 
     //--------------------------------------------------------------------
@@ -108,9 +109,9 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      *
      * @param $prefixKey
      */
-    public function setPrefixKey( $prefixKey )
+    public function setPrefixKey($prefixKey)
     {
-        $this->prefixKey = rtrim( $prefixKey, ':' ) . ':';
+        $this->prefixKey = rtrim($prefixKey, ':') . ':';
     }
 
     // ------------------------------------------------------------------------
@@ -124,7 +125,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      *
      * @return void
      */
-    public function setLogger( LoggerInterface $logger )
+    public function setLogger(LoggerInterface $logger)
     {
         $this->logger =& $logger;
     }
@@ -159,7 +160,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      * </p>
      * @since 5.4.0
      */
-    abstract public function open( $savePath, $name );
+    abstract public function open($savePath, $name);
 
     /**
      * AbstractHandler::close
@@ -190,7 +191,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      * </p>
      * @since 5.4.0
      */
-    abstract public function destroy( $sessionId );
+    abstract public function destroy($sessionId);
 
     /**
      * AbstractHandler::gc
@@ -210,7 +211,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      * </p>
      * @since 5.4.0
      */
-    abstract public function gc( $maxlifetime );
+    abstract public function gc($maxlifetime);
 
     /**
      * AbstractHandler::read
@@ -228,7 +229,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      * </p>
      * @since 5.4.0
      */
-    abstract public function read( $sessionId );
+    abstract public function read($sessionId);
 
     /**
      * AbstractHandler::write
@@ -252,7 +253,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      * </p>
      * @since 5.4.0
      */
-    abstract public function write( $sessionId, $sessionData );
+    abstract public function write($sessionId, $sessionData);
 
     /**
      * AbstractHandler::isSupported
@@ -276,7 +277,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
      *
      * @return bool
      */
-    protected function lockSession( $sessionId )
+    protected function lockSession($sessionId)
     {
         $this->isLocked = true;
 

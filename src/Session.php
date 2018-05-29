@@ -75,10 +75,28 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
                 $this->handler = new $handlerClassName(clone $this->config);
             }
         }
+    }
 
-        if (function_exists('logger')) {
-            $this->setLogger(logger());
+    // ------------------------------------------------------------------------
+
+    /**
+     * Session::isSupported
+     *
+     * Checks if server is support cache storage platform.
+     *
+     * @param string $platform Platform name.
+     *
+     * @return bool
+     */
+    public static function isSupported($platform)
+    {
+        $handlerClassName = '\O2System\Session\Handlers\\' . ucfirst($platform) . 'Handler';
+
+        if (class_exists($handlerClassName)) {
+            return (new $handlerClassName)->isSupported();
         }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -102,28 +120,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         if (isset($this->handler)) {
             $this->handler->setLogger($this->logger);
         }
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::isSupported
-     *
-     * Checks if server is support cache storage platform.
-     *
-     * @param string $platform Platform name.
-     *
-     * @return bool
-     */
-    public static function isSupported($platform)
-    {
-        $handlerClassName = '\O2System\Session\Handlers\\' . ucfirst($platform) . 'Handler';
-
-        if (class_exists($handlerClassName)) {
-            return (new $handlerClassName)->isSupported();
-        }
-
-        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -209,25 +205,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     //--------------------------------------------------------------------
 
     /**
-     * Session::isStarted
-     *
-     * Check if the PHP Session is has been started.
-     *
-     * @access  public
-     * @return  bool
-     */
-    public function isStarted()
-    {
-        if (php_sapi_name() !== 'cli') {
-            return session_status() == PHP_SESSION_NONE ? false : true;
-        }
-
-        return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * Session::setConfiguration
      *
      * Handle input binds and configuration defaults.
@@ -236,12 +213,9 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      */
     private function setConfiguration()
     {
-        if (empty($this->config[ 'name' ]))
-        {
+        if (empty($this->config[ 'name' ])) {
             $this->sessionCookieName = ini_get('session.name');
-        }
-        else
-        {
+        } else {
             ini_set('session.name', $this->config[ 'name' ]);
         }
 
@@ -334,6 +308,25 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
                 break;
         }
         $this->sidRegexp .= '{' . $sid_length . '}';
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * Session::isStarted
+     *
+     * Check if the PHP Session is has been started.
+     *
+     * @access  public
+     * @return  bool
+     */
+    public function isStarted()
+    {
+        if (php_sapi_name() !== 'cli') {
+            return session_status() == PHP_SESSION_NONE ? false : true;
+        }
+
+        return false;
     }
 
     /**
@@ -441,23 +434,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     // ------------------------------------------------------------------------
 
     /**
-     * Session::__isset
-     *
-     * Implementing magic method __isset to simplify when checks if offset exists on PHP native session variable,
-     * just simply calling isset( $session[ 'offset' ] ).
-     *
-     * @param mixed $offset PHP native session offset.
-     *
-     * @return bool
-     */
-    public function __isset($offset)
-    {
-        return $this->offsetExists($offset);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Session::offsetExists
      *
      * Checks if offset exists on PHP native session variable.
@@ -477,6 +453,23 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     public function offsetExists($offset)
     {
         return (bool)isset($_SESSION[ $offset ]);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Session::__isset
+     *
+     * Implementing magic method __isset to simplify when checks if offset exists on PHP native session variable,
+     * just simply calling isset( $session[ 'offset' ] ).
+     *
+     * @param mixed $offset PHP native session offset.
+     *
+     * @return bool
+     */
+    public function __isset($offset)
+    {
+        return $this->offsetExists($offset);
     }
 
     // ------------------------------------------------------------------------
@@ -547,31 +540,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     // ------------------------------------------------------------------------
 
     /**
-     * Session::offsetGet
-     *
-     * Gets PHP native session variable value by requested offset.
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetget.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to retrieve.
-     *                      </p>
-     *
-     * @return mixed Can return all value types.
-     * @since 5.0.0
-     */
-    public function offsetGet($offset)
-    {
-        if ($offset === 'id') {
-            $_SESSION[ 'id' ] = session_id();
-        }
-
-        return (isset($_SESSION[ $offset ])) ? $_SESSION[ $offset ] : false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Session::__unset
      *
      * Implementing magic method __unset to simplify unset method, just simply calling
@@ -609,7 +577,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         }
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Session::getIterator
@@ -649,20 +617,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     }
 
     //--------------------------------------------------------------------
-
-    /**
-     * Session::get
-     *
-     * @param string $offset Session offset or associative array of session values
-     *
-     * @return mixed
-     */
-    public function get($offset)
-    {
-        return $this->offsetGet($offset);
-    }
-
-    // ------------------------------------------------------------------------
 
     /**
      * Session::set
@@ -728,6 +682,45 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         $_SESSION[ '__o2sessionVariables' ][ $offset ] = 'new';
 
         return true;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Session::get
+     *
+     * @param string $offset Session offset or associative array of session values
+     *
+     * @return mixed
+     */
+    public function get($offset)
+    {
+        return $this->offsetGet($offset);
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * Session::offsetGet
+     *
+     * Gets PHP native session variable value by requested offset.
+     *
+     * @link  http://php.net/manual/en/arrayaccess.offsetget.php
+     *
+     * @param mixed $offset <p>
+     *                      The offset to retrieve.
+     *                      </p>
+     *
+     * @return mixed Can return all value types.
+     * @since 5.0.0
+     */
+    public function offsetGet($offset)
+    {
+        if ($offset === 'id') {
+            $_SESSION[ 'id' ] = session_id();
+        }
+
+        return (isset($_SESSION[ $offset ])) ? $_SESSION[ $offset ] : false;
     }
 
     //--------------------------------------------------------------------

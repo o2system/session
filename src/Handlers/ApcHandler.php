@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Session\Handlers;
@@ -50,11 +51,11 @@ class ApcHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open( $save_path, $name )
+    public function open($save_path, $name)
     {
-        if ( $this->isSupported() === false ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ 'Alternative PHP Cache (APC)' ] );
+        if ($this->isSupported() === false) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', ['Alternative PHP Cache (APC)']);
             }
 
             return false;
@@ -74,7 +75,7 @@ class ApcHandler extends AbstractHandler
      */
     public function isSupported()
     {
-        return (bool)( extension_loaded( 'apc' ) && ini_get( 'apc.enabled' ) );
+        return (bool)(extension_loaded('apc') && ini_get('apc.enabled'));
     }
 
     // ------------------------------------------------------------------------
@@ -93,8 +94,8 @@ class ApcHandler extends AbstractHandler
      */
     public function close()
     {
-        if ( isset( $this->lockKey ) ) {
-            return apc_delete( $this->lockKey );
+        if (isset($this->lockKey)) {
+            return apc_delete($this->lockKey);
         }
 
         return false;
@@ -117,10 +118,10 @@ class ApcHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy( $session_id )
+    public function destroy($session_id)
     {
-        if ( isset( $this->lockKey ) ) {
-            apc_delete( $this->prefixKey . $session_id );
+        if (isset($this->lockKey)) {
+            apc_delete($this->prefixKey . $session_id);
 
             return $this->destroyCookie();
         }
@@ -148,7 +149,7 @@ class ApcHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc( $maxlifetime )
+    public function gc($maxlifetime)
     {
         // Not necessary, APC takes care of that.
         return true;
@@ -172,17 +173,17 @@ class ApcHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read( $session_id )
+    public function read($session_id)
     {
-        if ( $this->lockSession( $session_id ) ) {
+        if ($this->lockSession($session_id)) {
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
             $success = false;
-            $sessionData = apc_fetch( $this->prefixKey . $session_id, $success );
+            $sessionData = apc_fetch($this->prefixKey . $session_id, $success);
 
-            if ( $success ) {
-                $this->fingerprint = md5( $sessionData );
+            if ($success) {
+                $this->fingerprint = md5($sessionData);
 
                 return $sessionData;
             }
@@ -202,10 +203,10 @@ class ApcHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockSession( $session_id )
+    protected function lockSession($session_id)
     {
-        if ( isset( $this->lockKey ) ) {
-            return apc_store( $this->lockKey, time(), 300 );
+        if (isset($this->lockKey)) {
+            return apc_store($this->lockKey, time(), 300);
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
@@ -213,14 +214,14 @@ class ApcHandler extends AbstractHandler
         $attempt = 0;
 
         do {
-            if ( apc_exists( $lockKey ) ) {
-                sleep( 1 );
+            if (apc_exists($lockKey)) {
+                sleep(1);
                 continue;
             }
 
-            if ( ! apc_store( $lockKey, time(), 300 ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+            if ( ! apc_store($lockKey, time(), 300)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_OBTAIN_LOCK', [$this->prefixKey . $session_id]);
                 }
 
                 return false;
@@ -228,11 +229,11 @@ class ApcHandler extends AbstractHandler
 
             $this->lockKey = $lockKey;
             break;
-        } while ( ++$attempt < 30 );
+        } while (++$attempt < 30);
 
-        if ( $attempt === 30 ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+        if ($attempt === 30) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_OBTAIN_LOCK_30', [$this->prefixKey . $session_id]);
             }
 
             return false;
@@ -267,22 +268,22 @@ class ApcHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write( $session_id, $sessionData )
+    public function write($session_id, $sessionData)
     {
-        if ( $session_id !== $this->sessionId ) {
-            if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
+        if ($session_id !== $this->sessionId) {
+            if ( ! $this->lockRelease() OR ! $this->lockSession($session_id)) {
                 return false;
             }
 
-            $this->fingerprint = md5( '' );
+            $this->fingerprint = md5('');
             $this->sessionId = $session_id;
         }
 
-        if ( isset( $this->lockKey ) ) {
-            apc_store( $this->lockKey, time(), 300 );
+        if (isset($this->lockKey)) {
+            apc_store($this->lockKey, time(), 300);
 
-            if ( $this->fingerprint !== ( $fingerprint = md5( $sessionData ) ) ) {
-                if ( apc_store( $this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ] ) ) {
+            if ($this->fingerprint !== ($fingerprint = md5($sessionData))) {
+                if (apc_store($this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ])) {
                     $this->fingerprint = $fingerprint;
 
                     return true;
@@ -291,7 +292,7 @@ class ApcHandler extends AbstractHandler
                 return false;
             }
 
-            return apc_store( $this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ] );
+            return apc_store($this->prefixKey . $session_id, $sessionData, $this->config[ 'lifetime' ]);
         }
 
         return false;
@@ -308,10 +309,10 @@ class ApcHandler extends AbstractHandler
      */
     protected function lockRelease()
     {
-        if ( isset( $this->lockKey ) AND $this->isLocked ) {
-            if ( ! apc_delete( $this->lockKey ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
+        if (isset($this->lockKey) AND $this->isLocked) {
+            if ( ! apc_delete($this->lockKey)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_FREE_LOCK', [$this->lockKey]);
                 }
 
                 return false;

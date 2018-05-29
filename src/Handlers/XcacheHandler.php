@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Session\Handlers;
@@ -50,11 +51,11 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open( $save_path, $name )
+    public function open($save_path, $name)
     {
-        if ( $this->isSupported() === false ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ $this->platform ] );
+        if ($this->isSupported() === false) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', [$this->platform]);
             }
 
             return false;
@@ -74,7 +75,7 @@ class XcacheHandler extends AbstractHandler
      */
     public function isSupported()
     {
-        return (bool)extension_loaded( 'xcache' );
+        return (bool)extension_loaded('xcache');
     }
 
     // ------------------------------------------------------------------------
@@ -93,8 +94,8 @@ class XcacheHandler extends AbstractHandler
      */
     public function close()
     {
-        if ( isset( $this->lockKey ) ) {
-            return xcache_unset( $this->lockKey );
+        if (isset($this->lockKey)) {
+            return xcache_unset($this->lockKey);
         }
 
         return false;
@@ -117,10 +118,10 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy( $session_id )
+    public function destroy($session_id)
     {
-        if ( isset( $this->lockKey ) ) {
-            xcache_unset( $this->prefixKey . $session_id );
+        if (isset($this->lockKey)) {
+            xcache_unset($this->prefixKey . $session_id);
 
             return $this->destroyCookie();
         }
@@ -148,7 +149,7 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc( $maxlifetime )
+    public function gc($maxlifetime)
     {
         // Not necessary, XCache takes care of that.
         return true;
@@ -172,14 +173,14 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read( $session_id )
+    public function read($session_id)
     {
-        if ( $this->lockSession( $session_id ) ) {
+        if ($this->lockSession($session_id)) {
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $sessionData = xcache_get( $this->prefixKey . $session_id );
-            $this->fingerprint = md5( $sessionData );
+            $sessionData = xcache_get($this->prefixKey . $session_id);
+            $this->fingerprint = md5($sessionData);
 
             return $sessionData;
         }
@@ -198,10 +199,10 @@ class XcacheHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockSession( $session_id )
+    protected function lockSession($session_id)
     {
-        if ( isset( $this->lockKey ) ) {
-            return xcache_set( $this->lockKey, time(), 300 );
+        if (isset($this->lockKey)) {
+            return xcache_set($this->lockKey, time(), 300);
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
@@ -209,14 +210,14 @@ class XcacheHandler extends AbstractHandler
         $attempt = 0;
 
         do {
-            if ( xcache_isset( $lockKey ) ) {
-                sleep( 1 );
+            if (xcache_isset($lockKey)) {
+                sleep(1);
                 continue;
             }
 
-            if ( ! xcache_set( $lockKey, time(), 300 ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+            if ( ! xcache_set($lockKey, time(), 300)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_OBTAIN_LOCK', [$this->prefixKey . $session_id]);
                 }
 
                 return false;
@@ -224,11 +225,11 @@ class XcacheHandler extends AbstractHandler
 
             $this->lockKey = $lockKey;
             break;
-        } while ( ++$attempt < 30 );
+        } while (++$attempt < 30);
 
-        if ( $attempt === 30 ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+        if ($attempt === 30) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_OBTAIN_LOCK_30', [$this->prefixKey . $session_id]);
             }
 
             return false;
@@ -263,22 +264,22 @@ class XcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write( $session_id, $session_data )
+    public function write($session_id, $session_data)
     {
-        if ( $session_id !== $this->sessionId ) {
-            if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
+        if ($session_id !== $this->sessionId) {
+            if ( ! $this->lockRelease() OR ! $this->lockSession($session_id)) {
                 return false;
             }
 
-            $this->fingerprint = md5( '' );
+            $this->fingerprint = md5('');
             $this->sessionId = $session_id;
         }
 
-        if ( isset( $this->lockKey ) ) {
-            xcache_set( $this->lockKey, time(), 300 );
+        if (isset($this->lockKey)) {
+            xcache_set($this->lockKey, time(), 300);
 
-            if ( $this->fingerprint !== ( $fingerprint = md5( $session_data ) ) ) {
-                if ( xcache_set( $this->prefixKey . $session_id, $session_data, $this->config[ 'lifetime' ] ) ) {
+            if ($this->fingerprint !== ($fingerprint = md5($session_data))) {
+                if (xcache_set($this->prefixKey . $session_id, $session_data, $this->config[ 'lifetime' ])) {
                     $this->fingerprint = $fingerprint;
 
                     return true;
@@ -287,7 +288,7 @@ class XcacheHandler extends AbstractHandler
                 return false;
             }
 
-            return xcache_set( $this->prefixKey . $session_id, $session_data, $this->config[ 'lifetime' ] );
+            return xcache_set($this->prefixKey . $session_id, $session_data, $this->config[ 'lifetime' ]);
         }
 
         return false;
@@ -304,10 +305,10 @@ class XcacheHandler extends AbstractHandler
      */
     protected function lockRelease()
     {
-        if ( isset( $this->lockKey ) AND $this->isLocked ) {
-            if ( ! xcache_unset( $this->lockKey ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
+        if (isset($this->lockKey) AND $this->isLocked) {
+            if ( ! xcache_unset($this->lockKey)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_FREE_LOCK', [$this->lockKey]);
                 }
 
                 return false;

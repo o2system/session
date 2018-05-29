@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Session\Handlers;
@@ -77,13 +78,13 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open( $save_path, $name )
+    public function open($save_path, $name)
     {
         $this->path = $this->config[ 'path' ];
 
-        if ( $this->isSupported() === false ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_FILE_UNSUPPORTED', [ $this->path ] );
+        if ($this->isSupported() === false) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_FILE_UNSUPPORTED', [$this->path]);
             }
 
             return false;
@@ -91,7 +92,7 @@ class FileHandler extends AbstractHandler
 
         $this->filePath = $this->path
             . $name . '-' // we'll use the session cookie name as a prefix to avoid collisions
-            . ( $this->config[ 'match' ]->ip ? md5( $_SERVER[ 'REMOTE_ADDR' ] ) . '-' : '' );
+            . ($this->config[ 'match' ]->ip ? md5($_SERVER[ 'REMOTE_ADDR' ]) . '-' : '');
 
         return true;
     }
@@ -107,11 +108,11 @@ class FileHandler extends AbstractHandler
      */
     public function isSupported()
     {
-        if ( ! is_writable( $this->path ) ) {
-            @mkdir( $this->path, 0777, true );
+        if ( ! is_writable($this->path)) {
+            @mkdir($this->path, 0777, true);
         }
 
-        return (bool)is_writable( $this->path );
+        return (bool)is_writable($this->path);
     }
 
     // ------------------------------------------------------------------------
@@ -131,17 +132,17 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy( $session_id )
+    public function destroy($session_id)
     {
-        if ( $this->close() ) {
-            return file_exists( $this->filePath . $session_id )
-                ? ( unlink( $this->filePath . $session_id ) && $this->destroyCookie() )
+        if ($this->close()) {
+            return file_exists($this->filePath . $session_id)
+                ? (unlink($this->filePath . $session_id) && $this->destroyCookie())
                 : true;
-        } elseif ( $this->filePath !== null ) {
+        } elseif ($this->filePath !== null) {
             clearstatcache();
 
-            return file_exists( $this->filePath . $session_id )
-                ? ( unlink( $this->filePath . $session_id ) && $this->destroyCookie() )
+            return file_exists($this->filePath . $session_id)
+                ? (unlink($this->filePath . $session_id) && $this->destroyCookie())
                 : true;
         }
 
@@ -164,9 +165,9 @@ class FileHandler extends AbstractHandler
      */
     public function close()
     {
-        if ( is_resource( $this->file ) ) {
-            flock( $this->file, LOCK_UN );
-            fclose( $this->file );
+        if (is_resource($this->file)) {
+            flock($this->file, LOCK_UN);
+            fclose($this->file);
 
             $this->file = $this->isNewFile = $this->sessionId = null;
 
@@ -196,11 +197,11 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc( $maxlifetime )
+    public function gc($maxlifetime)
     {
-        if ( ! is_dir( $this->path ) || ( $directory = opendir( $this->path ) ) === false ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_FILE_ON_GC', [ $this->path ] );
+        if ( ! is_dir($this->path) || ($directory = opendir($this->path)) === false) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_FILE_ON_GC', [$this->path]);
             }
 
             return false;
@@ -208,20 +209,20 @@ class FileHandler extends AbstractHandler
 
         $ts = time() - $maxlifetime;
 
-        while ( ( $file = readdir( $directory ) ) !== false ) {
+        while (($file = readdir($directory)) !== false) {
             // If the filename doesn't match this pattern, it's either not a session file or is not ours
-            if ( ! preg_match( '/[' . $this->config[ 'name' ] . '-]+[0-9-a-f]+/', $file )
-                || ! is_file( $this->path . '/' . $file )
-                || ( $mtime = filemtime( $this->path . '/' . $file ) ) === false
+            if ( ! preg_match('/[' . $this->config[ 'name' ] . '-]+[0-9-a-f]+/', $file)
+                || ! is_file($this->path . '/' . $file)
+                || ($mtime = filemtime($this->path . '/' . $file)) === false
                 || $mtime > $ts
             ) {
                 continue;
             }
 
-            unlink( $this->path . '/' . $file );
+            unlink($this->path . '/' . $file);
         }
 
-        closedir( $directory );
+        closedir($directory);
 
         return true;
     }
@@ -250,46 +251,46 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write( $session_id, $session_data )
+    public function write($session_id, $session_data)
     {
         // If the two IDs don't match, we have a session_regenerate_id() call
         // and we need to close the old handle and open a new one
-        if ( $session_id !== $this->sessionId && ( ! $this->close() || $this->read( $session_id ) === false ) ) {
+        if ($session_id !== $this->sessionId && ( ! $this->close() || $this->read($session_id) === false)) {
             return false;
         }
 
-        if ( ! is_resource( $this->file ) ) {
+        if ( ! is_resource($this->file)) {
             return false;
-        } elseif ( $this->fingerprint === md5( $session_data ) ) {
-            return ( $this->isNewFile )
+        } elseif ($this->fingerprint === md5($session_data)) {
+            return ($this->isNewFile)
                 ? true
-                : touch( $this->filePath . $session_id );
+                : touch($this->filePath . $session_id);
         }
 
-        if ( ! $this->isNewFile ) {
-            ftruncate( $this->file, 0 );
-            rewind( $this->file );
+        if ( ! $this->isNewFile) {
+            ftruncate($this->file, 0);
+            rewind($this->file);
         }
 
-        if ( ( $length = strlen( $session_data ) ) > 0 ) {
-            for ( $written = 0; $written < $length; $written += $result ) {
-                if ( ( $result = fwrite( $this->file, substr( $session_data, $written ) ) ) === false ) {
+        if (($length = strlen($session_data)) > 0) {
+            for ($written = 0; $written < $length; $written += $result) {
+                if (($result = fwrite($this->file, substr($session_data, $written))) === false) {
                     break;
                 }
             }
 
-            if ( ! is_int( $result ) ) {
-                $this->fingerprint = md5( substr( $session_data, 0, $written ) );
+            if ( ! is_int($result)) {
+                $this->fingerprint = md5(substr($session_data, 0, $written));
 
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_FILE_ON_WRITE' );
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_FILE_ON_WRITE');
                 }
 
                 return false;
             }
         }
 
-        $this->fingerprint = md5( $session_data );
+        $this->fingerprint = md5($session_data);
 
         return true;
     }
@@ -312,25 +313,25 @@ class FileHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read( $session_id )
+    public function read($session_id)
     {
         // This might seem weird, but PHP 5.6 introduced session_reset(),
         // which re-reads session data
-        if ( $this->file === null ) {
-            if ( ( $this->file = fopen( $this->filePath . $session_id, 'c+b' ) ) === false ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_FILE_ON_READ', [ $this->filePath . $session_id ] );
+        if ($this->file === null) {
+            if (($this->file = fopen($this->filePath . $session_id, 'c+b')) === false) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_FILE_ON_READ', [$this->filePath . $session_id]);
                 }
 
                 return false;
             }
 
-            if ( flock( $this->file, LOCK_EX ) === false ) {
-                fclose( $this->file );
+            if (flock($this->file, LOCK_EX) === false) {
+                fclose($this->file);
                 $this->file = null;
 
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_ON_LOCK', [ $this->filePath . $session_id ] );
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_ON_LOCK', [$this->filePath . $session_id]);
                 }
 
                 return false;
@@ -339,28 +340,28 @@ class FileHandler extends AbstractHandler
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            if ( $this->isNewFile ) {
-                chmod( $this->filePath . $session_id, 0600 );
-                $this->fingerprint = md5( '' );
+            if ($this->isNewFile) {
+                chmod($this->filePath . $session_id, 0600);
+                $this->fingerprint = md5('');
 
                 return '';
             }
         } else {
-            rewind( $this->file );
+            rewind($this->file);
         }
 
         $sessionData = '';
-        for ( $read = 0, $length = filesize( $this->filePath . $session_id ); $read < $length; $read += strlen(
+        for ($read = 0, $length = filesize($this->filePath . $session_id); $read < $length; $read += strlen(
             $buffer
-        ) ) {
-            if ( ( $buffer = fread( $this->file, $length - $read ) ) === false ) {
+        )) {
+            if (($buffer = fread($this->file, $length - $read)) === false) {
                 break;
             }
 
             $sessionData .= $buffer;
         }
 
-        $this->fingerprint = md5( $sessionData );
+        $this->fingerprint = md5($sessionData);
 
         return $sessionData;
     }

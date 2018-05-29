@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Session\Handlers;
@@ -47,7 +48,7 @@ class MemcacheHandler extends AbstractHandler
      *
      * @param Config $config
      */
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
         $config->merge(
             [
@@ -57,7 +58,7 @@ class MemcacheHandler extends AbstractHandler
             ]
         );
 
-        parent::__construct( $config );
+        parent::__construct($config);
     }
 
     /**
@@ -76,22 +77,22 @@ class MemcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open( $save_path, $name )
+    public function open($save_path, $name)
     {
-        if ( class_exists( 'Memcache', false ) ) {
+        if (class_exists('Memcache', false)) {
             $this->memcache = new \Memcache();
         } else {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ 'Memcache' ] );
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', ['Memcache']);
             }
 
             return false;
         }
 
-        if ( isset( $this->config[ 'servers' ] ) ) {
-            foreach ( $this->config[ 'servers' ] as $server => $setup ) {
-                isset( $setup[ 'port' ] ) OR $setup[ 'port' ] = 11211;
-                isset( $setup[ 'weight' ] ) OR $setup[ 'weight' ] = 1;
+        if (isset($this->config[ 'servers' ])) {
+            foreach ($this->config[ 'servers' ] as $server => $setup) {
+                isset($setup[ 'port' ]) OR $setup[ 'port' ] = 11211;
+                isset($setup[ 'weight' ]) OR $setup[ 'weight' ] = 1;
 
                 // Third parameter is persistance and defaults to TRUE.
                 $this->memcache->addServer(
@@ -111,9 +112,9 @@ class MemcacheHandler extends AbstractHandler
             );
         }
 
-        if ( $this->memcache->getVersion() === false ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_MEMCACHED_CONNECTION_REFUSED' );
+        if ($this->memcache->getVersion() === false) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_MEMCACHED_CONNECTION_REFUSED');
             }
 
             return false;
@@ -138,12 +139,12 @@ class MemcacheHandler extends AbstractHandler
      */
     public function close()
     {
-        if ( isset( $this->memcache ) ) {
-            isset( $this->lockKey ) AND $this->memcache->delete( $this->lockKey );
+        if (isset($this->memcache)) {
+            isset($this->lockKey) AND $this->memcache->delete($this->lockKey);
 
-            if ( $this->memcache instanceof \Memcached ) {
+            if ($this->memcache instanceof \Memcached) {
                 $this->memcache->quit();
-            } elseif ( $this->memcache instanceof \MemcachePool ) {
+            } elseif ($this->memcache instanceof \MemcachePool) {
                 $this->memcache->close();
             }
 
@@ -172,10 +173,10 @@ class MemcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy( $session_id )
+    public function destroy($session_id)
     {
-        if ( isset( $this->memcache, $this->lockKey ) ) {
-            $this->memcache->delete( $this->prefixKey . $session_id );
+        if (isset($this->memcache, $this->lockKey)) {
+            $this->memcache->delete($this->prefixKey . $session_id);
 
             return $this->destroyCookie();
         }
@@ -203,7 +204,7 @@ class MemcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc( $maxlifetime )
+    public function gc($maxlifetime)
     {
         // Not necessary, Memcached takes care of that.
         return true;
@@ -227,14 +228,14 @@ class MemcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read( $session_id )
+    public function read($session_id)
     {
-        if ( isset( $this->memcache ) && $this->lockSession( $session_id ) ) {
+        if (isset($this->memcache) && $this->lockSession($session_id)) {
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $sessionData = (string)$this->memcache->get( $this->prefixKey . $session_id );
-            $this->fingerprint = md5( $sessionData );
+            $sessionData = (string)$this->memcache->get($this->prefixKey . $session_id);
+            $this->fingerprint = md5($sessionData);
 
             return $sessionData;
         }
@@ -253,10 +254,10 @@ class MemcacheHandler extends AbstractHandler
      *
      * @return  bool
      */
-    protected function lockSession( $session_id )
+    protected function lockSession($session_id)
     {
-        if ( isset( $this->lockKey ) ) {
-            return $this->memcache->replace( $this->lockKey, time(),  false,300 );
+        if (isset($this->lockKey)) {
+            return $this->memcache->replace($this->lockKey, time(), false, 300);
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
@@ -264,14 +265,14 @@ class MemcacheHandler extends AbstractHandler
         $attempt = 0;
 
         do {
-            if ( $this->memcache->get( $lockKey ) ) {
-                sleep( 1 );
+            if ($this->memcache->get($lockKey)) {
+                sleep(1);
                 continue;
             }
 
-            if ( ! @$this->memcache->set( $lockKey, time(), false, 300 ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+            if ( ! @$this->memcache->set($lockKey, time(), false, 300)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_OBTAIN_LOCK', [$this->prefixKey . $session_id]);
                 }
 
                 return false;
@@ -279,11 +280,11 @@ class MemcacheHandler extends AbstractHandler
 
             $this->lockKey = $lockKey;
             break;
-        } while ( ++$attempt < 30 );
+        } while (++$attempt < 30);
 
-        if ( $attempt === 30 ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+        if ($attempt === 30) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_OBTAIN_LOCK_30', [$this->prefixKey . $session_id]);
             }
 
             return false;
@@ -318,25 +319,25 @@ class MemcacheHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write( $session_id, $session_data )
+    public function write($session_id, $session_data)
     {
-        if ( ! isset( $this->memcache ) ) {
+        if ( ! isset($this->memcache)) {
             return false;
         } // Was the ID regenerated?
-        elseif ( $session_id !== $this->sessionId ) {
-            if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
+        elseif ($session_id !== $this->sessionId) {
+            if ( ! $this->lockRelease() OR ! $this->lockSession($session_id)) {
                 return false;
             }
 
-            $this->fingerprint = md5( '' );
+            $this->fingerprint = md5('');
             $this->sessionId = $session_id;
         }
 
-        if ( isset( $this->lockKey ) ) {
-            $this->memcache->replace( $this->lockKey, time(), false, 300 );
+        if (isset($this->lockKey)) {
+            $this->memcache->replace($this->lockKey, time(), false, 300);
 
-            if ( $this->fingerprint !== ( $fingerprint = md5( $session_data ) ) ) {
-                if ( $this->memcache->set(
+            if ($this->fingerprint !== ($fingerprint = md5($session_data))) {
+                if ($this->memcache->set(
                     $this->prefixKey . $session_id,
                     $session_data,
                     false,
@@ -351,8 +352,8 @@ class MemcacheHandler extends AbstractHandler
                 return false;
             }
 
-            return $this->memcache->replace( $this->prefixKey . $session_id, $session_data, false,
-                $this->config[ 'lifetime' ] );
+            return $this->memcache->replace($this->prefixKey . $session_id, $session_data, false,
+                $this->config[ 'lifetime' ]);
         }
 
         return false;
@@ -369,10 +370,10 @@ class MemcacheHandler extends AbstractHandler
      */
     protected function lockRelease()
     {
-        if ( isset( $this->memcache, $this->lockKey ) && $this->isLocked ) {
-            if ( ! $this->memcache->delete( $this->lockKey ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
+        if (isset($this->memcache, $this->lockKey) && $this->isLocked) {
+            if ( ! $this->memcache->delete($this->lockKey)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_FREE_LOCK', [$this->lockKey]);
                 }
 
                 return false;
@@ -396,6 +397,6 @@ class MemcacheHandler extends AbstractHandler
      */
     public function isSupported()
     {
-        return (bool)extension_loaded( 'memcache' );
+        return (bool)extension_loaded('memcache');
     }
 }

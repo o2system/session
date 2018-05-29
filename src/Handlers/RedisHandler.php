@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Session\Handlers;
@@ -47,7 +48,7 @@ class RedisHandler extends AbstractHandler
      *
      * @param Config $config
      */
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
         $config->merge(
             [
@@ -59,7 +60,7 @@ class RedisHandler extends AbstractHandler
             ]
         );
 
-        parent::__construct( $config );
+        parent::__construct($config);
     }
 
     /**
@@ -78,13 +79,13 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function open( $save_path, $name )
+    public function open($save_path, $name)
     {
-        if ( class_exists( 'Redis', false ) ) {
+        if (class_exists('Redis', false)) {
             $this->redis = new \Redis();
         } else {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_PLATFORM_UNSUPPORTED', [ 'Redis' ] );
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', ['Redis']);
             }
 
             return false;
@@ -93,30 +94,30 @@ class RedisHandler extends AbstractHandler
         try {
             if ( ! $this->redis->connect(
                 $this->config[ 'host' ],
-                ( $this->config[ 'host' ][ 0 ] === '/' ? 0
-                    : $this->config[ 'port' ] ),
+                ($this->config[ 'host' ][ 0 ] === '/' ? 0
+                    : $this->config[ 'port' ]),
                 $this->config[ 'timeout' ]
             )
             ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_REDIS_CONNECTION_FAILED', [ 'Redis' ] );
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_REDIS_CONNECTION_FAILED', ['Redis']);
                 }
 
                 return false;
             }
 
-            if ( isset( $this->config[ 'password' ] ) AND ! $this->redis->auth( $this->config[ 'password' ] ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_REDIS_AUTHENTICATION_FAILED', [ 'Redis' ] );
+            if (isset($this->config[ 'password' ]) AND ! $this->redis->auth($this->config[ 'password' ])) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_REDIS_AUTHENTICATION_FAILED', ['Redis']);
                 }
 
                 return false;
             }
 
             return true;
-        } catch ( \RedisException $e ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_REDIS_CONNECTION_REFUSED', $e->getMessage() );
+        } catch (\RedisException $e) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_REDIS_CONNECTION_REFUSED', $e->getMessage());
             }
 
             return false;
@@ -139,18 +140,18 @@ class RedisHandler extends AbstractHandler
      */
     public function close()
     {
-        if ( isset( $this->redis ) ) {
+        if (isset($this->redis)) {
             try {
-                if ( $this->redis->ping() === '+PONG' ) {
-                    isset( $this->lockKey ) AND $this->redis->delete( $this->lockKey );
+                if ($this->redis->ping() === '+PONG') {
+                    isset($this->lockKey) AND $this->redis->delete($this->lockKey);
 
-                    if ( ! $this->redis->close() ) {
+                    if ( ! $this->redis->close()) {
                         return false;
                     }
                 }
-            } catch ( \RedisException $e ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_REDIS_ON_CLOSE', $e->getMessage() );
+            } catch (\RedisException $e) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_REDIS_ON_CLOSE', $e->getMessage());
                 }
             }
 
@@ -179,12 +180,12 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function destroy( $session_id )
+    public function destroy($session_id)
     {
-        if ( isset( $this->redis, $this->isLocked ) ) {
-            if ( ( $result = $this->redis->delete( $this->prefixKey . $session_id ) ) !== 1 ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_REDIS_ON_DELETE', var_export( $result, true ) );
+        if (isset($this->redis, $this->isLocked)) {
+            if (($result = $this->redis->delete($this->prefixKey . $session_id)) !== 1) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_REDIS_ON_DELETE', var_export($result, true));
                 }
             }
 
@@ -214,7 +215,7 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function gc( $maxlifetime )
+    public function gc($maxlifetime)
     {
         // Not necessary, Redis takes care of that.
         return true;
@@ -236,14 +237,14 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function read( $session_id )
+    public function read($session_id)
     {
-        if ( isset( $this->redis ) AND $this->lockSession( $session_id ) ) {
+        if (isset($this->redis) AND $this->lockSession($session_id)) {
             // Needed by write() to detect session_regenerate_id() calls
             $this->sessionId = $session_id;
 
-            $sessionData = (string)$this->redis->get( $this->prefixKey . $session_id );
-            $this->fingerprint = md5( $sessionData );
+            $sessionData = (string)$this->redis->get($this->prefixKey . $session_id);
+            $this->fingerprint = md5($sessionData);
 
             return $sessionData;
         }
@@ -262,10 +263,10 @@ class RedisHandler extends AbstractHandler
      *
      * @return    bool
      */
-    protected function lockSession( $session_id )
+    protected function lockSession($session_id)
     {
-        if ( isset( $this->lockKey ) ) {
-            return $this->redis->setTimeout( $this->lockKey, 300 );
+        if (isset($this->lockKey)) {
+            return $this->redis->setTimeout($this->lockKey, 300);
         }
 
         // 30 attempts to obtain a lock, in case another request already has it
@@ -273,14 +274,14 @@ class RedisHandler extends AbstractHandler
         $attempt = 0;
 
         do {
-            if ( ( $ttl = $this->redis->ttl( $lockKey ) ) > 0 ) {
-                sleep( 1 );
+            if (($ttl = $this->redis->ttl($lockKey)) > 0) {
+                sleep(1);
                 continue;
             }
 
-            if ( ! $this->redis->setex( $lockKey, 300, time() ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_OBTAIN_LOCK', [ $this->prefixKey . $session_id ] );
+            if ( ! $this->redis->setex($lockKey, 300, time())) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_OBTAIN_LOCK', [$this->prefixKey . $session_id]);
                 }
 
                 return false;
@@ -288,17 +289,17 @@ class RedisHandler extends AbstractHandler
 
             $this->lockKey = $lockKey;
             break;
-        } while ( ++$attempt < 30 );
+        } while (++$attempt < 30);
 
-        if ( $attempt === 30 ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_30', [ $this->prefixKey . $session_id ] );
+        if ($attempt === 30) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_OBTAIN_LOCK_30', [$this->prefixKey . $session_id]);
             }
 
             return false;
-        } elseif ( $ttl === -1 ) {
-            if ( $this->logger instanceof LoggerInterface ) {
-                $this->logger->error( 'SESSION_E_OBTAIN_LOCK_TTL', [ $this->prefixKey . $session_id ] );
+        } elseif ($ttl === -1) {
+            if ($this->logger instanceof LoggerInterface) {
+                $this->logger->error('SESSION_E_OBTAIN_LOCK_TTL', [$this->prefixKey . $session_id]);
             }
         }
 
@@ -331,25 +332,25 @@ class RedisHandler extends AbstractHandler
      * </p>
      * @since 5.4.0
      */
-    public function write( $session_id, $session_data )
+    public function write($session_id, $session_data)
     {
-        if ( ! isset( $this->redis ) ) {
+        if ( ! isset($this->redis)) {
             return false;
         } // Was the ID regenerated?
-        elseif ( $session_id !== $this->sessionId ) {
-            if ( ! $this->lockRelease() OR ! $this->lockSession( $session_id ) ) {
+        elseif ($session_id !== $this->sessionId) {
+            if ( ! $this->lockRelease() OR ! $this->lockSession($session_id)) {
                 return false;
             }
 
-            $this->fingerprint = md5( '' );
+            $this->fingerprint = md5('');
             $this->sessionId = $session_id;
         }
 
-        if ( isset( $this->lockKey ) ) {
-            $this->redis->setTimeout( $this->lockKey, 300 );
+        if (isset($this->lockKey)) {
+            $this->redis->setTimeout($this->lockKey, 300);
 
-            if ( $this->fingerprint !== ( $fingerprint = md5( $session_data ) ) ) {
-                if ( $this->redis->set( $this->prefixKey . $session_id, $session_data, $this->config[ 'lifetime' ] ) ) {
+            if ($this->fingerprint !== ($fingerprint = md5($session_data))) {
+                if ($this->redis->set($this->prefixKey . $session_id, $session_data, $this->config[ 'lifetime' ])) {
                     $this->fingerprint = $fingerprint;
 
                     return true;
@@ -358,7 +359,7 @@ class RedisHandler extends AbstractHandler
                 return false;
             }
 
-            return $this->redis->setTimeout( $this->prefixKey . $session_id, $this->config[ 'lifetime' ] );
+            return $this->redis->setTimeout($this->prefixKey . $session_id, $this->config[ 'lifetime' ]);
         }
 
         return false;
@@ -375,10 +376,10 @@ class RedisHandler extends AbstractHandler
      */
     protected function lockRelease()
     {
-        if ( isset( $this->redis, $this->lockKey ) && $this->isLocked ) {
-            if ( ! $this->redis->delete( $this->lockKey ) ) {
-                if ( $this->logger instanceof LoggerInterface ) {
-                    $this->logger->error( 'SESSION_E_FREE_LOCK', [ $this->lockKey ] );
+        if (isset($this->redis, $this->lockKey) && $this->isLocked) {
+            if ( ! $this->redis->delete($this->lockKey)) {
+                if ($this->logger instanceof LoggerInterface) {
+                    $this->logger->error('SESSION_E_FREE_LOCK', [$this->lockKey]);
                 }
 
                 return false;
@@ -402,6 +403,6 @@ class RedisHandler extends AbstractHandler
      */
     public function isSupported()
     {
-        return (bool)extension_loaded( 'redis' );
+        return (bool)extension_loaded('redis');
     }
 }
