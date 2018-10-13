@@ -80,7 +80,7 @@ class FileHandler extends AbstractHandler
      */
     public function open($save_path, $name)
     {
-        $this->path = $this->config[ 'path' ];
+        $this->path = $this->config[ 'filePath' ];
 
         if ($this->isSupported() === false) {
             if ($this->logger instanceof LoggerInterface) {

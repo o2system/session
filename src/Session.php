@@ -199,7 +199,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
                 session_id(),
                 (empty($this->config[ 'lifetime' ]) ? 0 : time() + $this->config[ 'lifetime' ]),
                 $this->config[ 'cookie' ]->path,
-                $this->config[ 'cookie' ]->domain,
+                '.' . ltrim($this->config[ 'cookie' ]->domain, '.'),
                 $this->config[ 'cookie' ]->secure,
                 true
             );
@@ -234,22 +234,19 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
                 : (isset($_SERVER[ 'SERVER_NAME' ]) ? $_SERVER[ 'SERVER_NAME' ] : null));
         }
 
+        $this->config[ 'cookie' ]->domain = ltrim($this->config[ 'cookie' ]->domain, '.');
+
+        ini_set('session.cookie_domain','.' . $this->config['cookie']->domain);
+        ini_set('session.cookie_path', $this->config['cookie']->path);
+
         // Security is king
         ini_set('session.cookie_lifetime', 0);
-        ini_set('session.use_cookies', 1);
-        ini_set('session.use_only_cookies', 1);
-        ini_set('session.use_strict_mode', 1);
-        ini_set('session.cookie_httponly', 1);
-        ini_set('ssession.cookie_secure', is_https());
-
-        /**
-         * Use of transparent session ID management is not prohibited.
-         * You may use it when it is needed.
-         * However, disabling transparent session ID management would
-         * improve general session ID security by removing possibility
-         * of session ID injection and session ID leak.
-         */
-        ini_set('session.use_trans_sid', 0);
+        ini_set('session.use_cookies', 'On');
+        ini_set('session.use_only_cookies', 'On');
+        ini_set('session.use_strict_mode', 'On');
+        ini_set('session.cookie_httponly', 'On');
+        ini_set('ssession.cookie_secure', (is_https() ? 'On' : 'Off'));
+        ini_set('session.use_trans_sid', 'Off');
 
         $this->configureSidLength();
     }
@@ -397,7 +394,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             session_id(),
             1,
             $this->config[ 'cookie' ]->path,
-            $this->config[ 'cookie' ]->domain,
+            '.' . ltrim($this->config[ 'cookie' ]->domain, '.'),
             $this->config[ 'cookie' ]->secure,
             true
         );

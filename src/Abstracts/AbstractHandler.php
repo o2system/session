@@ -317,7 +317,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
             null,
             1,
             $this->config[ 'cookie' ]->path,
-            $this->config[ 'cookie' ]->domain,
+            '.' . ltrim($this->config[ 'cookie' ]->domain, '.'),
             $this->config[ 'cookie' ]->secure,
             true
         );
