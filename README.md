@@ -1,3 +1,18 @@
+<div align="center" markdown="1">
+
+[![O2System Framework](http://o2system.id/assets/img/logo/logo-white-200px.png?logo)](http://o2system.id)
+</div>
+
+<div align="center" markdown="1">
+
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/session/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/session/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/o2system/session/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/session/build-status/master)
+[![Latest Stable Version](https://poser.pugx.org/o2system/session/v/stable)](https://packagist.org/packages/o2system/session)
+[![Total Downloads](https://poser.pugx.org/o2system/session/downloads)](https://packagist.org/packages/o2system/session)
+[![License](https://poser.pugx.org/o2system/session/license)](https://packagist.org/packages/o2system/session)
+
+</div>
+
 # O2System Session
 [O2System Session](https://github.com/o2system/session) is an Open Source Native PHP Session Management Handler Library.
 It allows different cache storage platform to be used.
