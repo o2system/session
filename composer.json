@@ -41,7 +41,7 @@
     "psr-4": {
       "O2System\\Session\\": "src"
     },
-    "files":[
+    "files": [
       "src/Session.php"
     ]
   }

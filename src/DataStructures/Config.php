@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,18 +11,18 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Session\Datastructures;
+namespace O2System\Session\DataStructures;
 
 // ------------------------------------------------------------------------
 
-use O2System\Kernel\Datastructures;
+use O2System\Kernel\DataStructures;
 
 /**
  * Class Config
  *
  * @package O2System\Session\Metadata
  */
-class Config extends Datastructures\Config
+class Config extends DataStructures\Config
 {
     /**
      * Config::__construct
@@ -95,8 +95,8 @@ class Config extends Datastructures\Config
             $config[ 'lifetime' ] = $config[ 'cookie' ][ 'lifetime' ];
         }
 
-        if( ! isset($config['path']) ) {
-            $config['path'] = '/';
+        if ( ! isset($config[ 'path' ])) {
+            $config[ 'path' ] = '/';
         }
 
         parent::__construct($config, Config::CAMELCASE_OFFSET);

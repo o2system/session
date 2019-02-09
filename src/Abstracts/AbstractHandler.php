@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@ namespace O2System\Session\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Kernel\Datastructures\Config;
+use O2System\Kernel\DataStructures\Config;
 use O2System\Psr\Log\LoggerAwareInterface;
 use O2System\Psr\Log\LoggerInterface;
 
@@ -89,7 +89,7 @@ abstract class AbstractHandler implements \SessionHandlerInterface, LoggerAwareI
     /**
      * AbstractHandler::__construct
      *
-     * @param \O2System\Kernel\Datastructures\Config $config
+     * @param \O2System\Kernel\DataStructures\Config $config
      *
      * @return AbstractHandler
      */

@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -31,7 +31,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     /**
      * Session Config
      *
-     * @var Kernel\Datastructures\Config
+     * @var Kernel\DataStructures\Config
      */
     protected $config;
 
@@ -56,11 +56,11 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     /**
      * Session::__construct
      *
-     * @param Kernel\Datastructures\Config $config
+     * @param Kernel\DataStructures\Config $config
      *
      * @return Session
      */
-    public function __construct(Kernel\Datastructures\Config $config)
+    public function __construct(Kernel\DataStructures\Config $config)
     {
         language()
             ->addFilePath(__DIR__ . DIRECTORY_SEPARATOR)
@@ -169,14 +169,13 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         $this->initializeVariables();
 
         // Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
-        if (isset($_COOKIE[$this->config[ 'name' ]]) && (
-                    ! is_string($this->config[ 'name' ]) ||
-                    ! preg_match('#\A' . $this->sidRegexp . '\z#', $_COOKIE[$this->config[ 'name' ]]
+        if (isset($_COOKIE[ $this->config[ 'name' ] ]) && (
+                ! is_string($this->config[ 'name' ]) ||
+                ! preg_match('#\A' . $this->sidRegexp . '\z#', $_COOKIE[ $this->config[ 'name' ] ]
                 )
             )
-        )
-        {
-            unset($_COOKIE[$this->config[ 'name' ]]);
+        ) {
+            unset($_COOKIE[ $this->config[ 'name' ] ]);
         }
 
         // Is session ID auto-regeneration configured? (ignoring ajax requests)
@@ -221,7 +220,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      */
     private function setConfiguration()
     {
-        ini_set('session.name', $this->config['name']);
+        ini_set('session.name', $this->config[ 'name' ]);
 
         if (empty($this->config[ 'lifetime' ])) {
             $this->config[ 'lifetime' ] = (int)ini_get('session.gc_maxlifetime');
@@ -236,8 +235,8 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 
         $this->config[ 'cookie' ]->domain = ltrim($this->config[ 'cookie' ]->domain, '.');
 
-        ini_set('session.cookie_domain','.' . $this->config['cookie']->domain);
-        ini_set('session.cookie_path', $this->config['cookie']->path);
+        ini_set('session.cookie_domain', '.' . $this->config[ 'cookie' ]->domain);
+        ini_set('session.cookie_path', $this->config[ 'cookie' ]->path);
 
         // Security is king
         ini_set('session.cookie_lifetime', 0);
@@ -315,38 +314,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     //--------------------------------------------------------------------
 
     /**
-     * Session::isStarted
-     *
-     * Check if the PHP Session is has been started.
-     *
-     * @access  public
-     * @return  bool
-     */
-    public function isStarted()
-    {
-        if (php_sapi_name() !== 'cli') {
-            return session_status() === PHP_SESSION_ACTIVE ? true : false;
-        }
-
-        return false;
-    }
-
-    /**
-     * Session::regenerate
-     *
-     * Regenerates the session ID
-     *
-     * @return void
-     */
-    public function regenerate()
-    {
-        $_SESSION[ 'last_regenerate' ] = time();
-        session_regenerate_id($this->config['regenerate']->destroy);
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * Session::initializeVariables
      *
      * Handle flash and temporary session variables. Clears old "flash" session variables,
@@ -356,7 +323,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      */
     private function initializeVariables()
     {
-        if ( empty($_SESSION[ 'system_variables' ])) {
+        if (empty($_SESSION[ 'system_variables' ])) {
             return;
         }
 
@@ -376,6 +343,38 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
         if (empty($_SESSION[ 'system_variables' ])) {
             unset($_SESSION[ 'system_variables' ]);
         }
+    }
+
+    /**
+     * Session::regenerate
+     *
+     * Regenerates the session ID
+     *
+     * @return void
+     */
+    public function regenerate()
+    {
+        $_SESSION[ 'last_regenerate' ] = time();
+        session_regenerate_id($this->config[ 'regenerate' ]->destroy);
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * Session::isStarted
+     *
+     * Check if the PHP Session is has been started.
+     *
+     * @access  public
+     * @return  bool
+     */
+    public function isStarted()
+    {
+        if (php_sapi_name() !== 'cli') {
+            return session_status() === PHP_SESSION_ACTIVE ? true : false;
+        }
+
+        return false;
     }
 
     //--------------------------------------------------------------------

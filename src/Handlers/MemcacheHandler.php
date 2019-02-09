@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@ namespace O2System\Session\Handlers;
 
 use O2System\Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
-use O2System\Session\Datastructures\Config;
+use O2System\Session\DataStructures\Config;
 
 /**
  * Class MemcachedHandler
