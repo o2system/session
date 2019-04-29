@@ -34,14 +34,14 @@
     "github-wiki": "http://github.com/o2system/session/wiki"
   },
   "require": {
-    "php": ">=5.6.0",
+    "php": "^7.2.0",
     "o2system/kernel": "*"
   },
   "autoload": {
     "psr-4": {
       "O2System\\Session\\": "src"
     },
-    "files":[
+    "files": [
       "src/Session.php"
     ]
   }

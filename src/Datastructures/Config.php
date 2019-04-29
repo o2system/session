@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,18 +11,18 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Session\Datastructures;
+namespace O2System\Session\DataStructures;
 
 // ------------------------------------------------------------------------
 
-use O2System\Kernel\Datastructures;
+use O2System\Kernel\DataStructures;
 
 /**
  * Class Config
  *
  * @package O2System\Session\Metadata
  */
-class Config extends Datastructures\Config
+class Config extends DataStructures\Config
 {
     /**
      * Config::__construct
@@ -47,18 +47,18 @@ class Config extends Datastructures\Config
         }
 
         if ($config[ 'handler' ] === 'file') {
-            if (isset($config[ 'path' ])) {
-                $config[ 'path' ] = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $config[ 'path' ]);
+            if (isset($config[ 'filePath' ])) {
+                $config[ 'filePath' ] = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $config[ 'filePath' ]);
 
-                if ( ! is_dir($config[ 'path' ])) {
+                if ( ! is_dir($config[ 'filePath' ])) {
                     if (defined('PATH_CACHE')) {
-                        $config[ 'path' ] = PATH_CACHE . $config[ 'path' ];
+                        $config[ 'filePath' ] = PATH_CACHE . $config[ 'filePath' ];
                     } else {
-                        $config[ 'path' ] = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $config[ 'path' ];
+                        $config[ 'filePath' ] = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $config[ 'filePath' ];
                     }
                 }
             } elseif (defined('PATH_CACHE')) {
-                $config[ 'path' ] = PATH_CACHE . 'sessions';
+                $config[ 'filePath' ] = PATH_CACHE . 'sessions';
             } else {
                 $this->path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . implode(
                         DIRECTORY_SEPARATOR,
@@ -66,11 +66,11 @@ class Config extends Datastructures\Config
                     );
             }
 
-            $config[ 'path' ] = rtrim($config[ 'path' ], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            $config[ 'filePath' ] = rtrim($config[ 'filePath' ], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
-            if ( ! is_writable($config[ 'path' ])) {
-                if ( ! file_exists($config[ 'path' ])) {
-                    @mkdir($config[ 'path' ], 0777, true);
+            if ( ! is_writable($config[ 'filePath' ])) {
+                if ( ! file_exists($config[ 'filePath' ])) {
+                    @mkdir($config[ 'filePath' ], 0777, true);
                 }
             }
         }
@@ -93,6 +93,10 @@ class Config extends Datastructures\Config
 
         if ( ! isset($config[ 'lifetime' ])) {
             $config[ 'lifetime' ] = $config[ 'cookie' ][ 'lifetime' ];
+        }
+
+        if ( ! isset($config[ 'path' ])) {
+            $config[ 'path' ] = '/';
         }
 
         parent::__construct($config, Config::CAMELCASE_OFFSET);

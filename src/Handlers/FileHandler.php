@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@ namespace O2System\Session\Handlers;
 
 // ------------------------------------------------------------------------
 
-use O2System\Psr\Log\LoggerInterface;
+use Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
 
 /**
@@ -80,7 +80,7 @@ class FileHandler extends AbstractHandler
      */
     public function open($save_path, $name)
     {
-        $this->path = $this->config[ 'path' ];
+        $this->path = $this->config[ 'filePath' ];
 
         if ($this->isSupported() === false) {
             if ($this->logger instanceof LoggerInterface) {
@@ -353,7 +353,8 @@ class FileHandler extends AbstractHandler
         $sessionData = '';
         for ($read = 0, $length = filesize($this->filePath . $session_id); $read < $length; $read += strlen(
             $buffer
-        )) {
+        )
+        ) {
             if (($buffer = fread($this->file, $length - $read)) === false) {
                 break;
             }
