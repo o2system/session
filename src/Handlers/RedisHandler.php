@@ -88,7 +88,7 @@ class RedisHandler extends AbstractHandler
                 $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', ['Redis']);
             }
 
-            return false;
+           z
         }
 
         try {

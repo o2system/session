@@ -58,10 +58,10 @@ class ApcuHandler extends AbstractHandler
                 $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', ['APC User Cache (APCu)']);
             }
 
-            return false;
+            return $this->failure;
         }
 
-        return true;
+        return $this->success;
     }
 
     // ------------------------------------------------------------------------

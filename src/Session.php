@@ -164,6 +164,13 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             unset($_COOKIE[ $this->config[ 'name' ] ]);
         }
 
+        /**
+         * If throwing error
+         *  session_start(): Failed to initialize storage module: user (path: )
+         *
+         * Change the php.ini
+         * session.save_path = "N;/path" **to** session.save_path = "/tmp"
+         */
         session_start();
 
         $this->initializeVariables();

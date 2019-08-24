@@ -87,14 +87,14 @@ class FileHandler extends AbstractHandler
                 $this->logger->error('SESSION_E_FILE_UNSUPPORTED', [$this->path]);
             }
 
-            return false;
+            return $this->failure;
         }
 
         $this->filePath = $this->path
             . $name . '-' // we'll use the session cookie name as a prefix to avoid collisions
             . ($this->config[ 'match' ]->ip ? md5($_SERVER[ 'REMOTE_ADDR' ]) . '-' : '');
 
-        return true;
+        return $this->success;
     }
 
     // ------------------------------------------------------------------------
