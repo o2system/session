@@ -15,20 +15,20 @@ namespace O2System;
 
 // ------------------------------------------------------------------------
 
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
+use O2System\Kernel\Http\Message\Uri\Domain;
 use O2System\Session\Abstracts\AbstractHandler;
-use O2System\Spl\Iterators\ArrayIterator;
-use Traversable;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Session
  *
  * @package O2System
  */
-class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
+class Session extends \O2System\Kernel\DataStructures\Input\Session
 {
     /**
+     * Session::$config
+     *
      * Session Config
      *
      * @var Kernel\DataStructures\Config
@@ -36,6 +36,8 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     protected $config;
 
     /**
+     * Session::$handler
+     *
      * Logger Instance
      *
      * @var LoggerInterface
@@ -43,12 +45,19 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     protected $logger;
 
     /**
+     * Session::$handler
+     *
      * Session Cache Platform Handler
      *
      * @var AbstractHandler
      */
     protected $handler;
 
+    /**
+     * Session::$sidRegexp
+     *
+     * @var
+     */
     protected $sidRegexp;
 
     // ------------------------------------------------------------------------
@@ -67,6 +76,12 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             ->loadFile('session');
 
         $this->config = $config;
+
+        if ($this->config->cookie->wildcard === false) {
+            $this->config->cookie->domain = (new Domain())->__toString();
+        } else {
+            $this->config->cookie->domain = '.' . ltrim($this->config->cookie->domain, '.');
+        }
 
         if ($this->config->offsetExists('handler')) {
             $handlerClassName = '\O2System\Session\Handlers\\' . ucfirst($this->config->handler) . 'Handler';
@@ -155,6 +170,8 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
 
         session_set_save_handler($this->handler, true);
 
+        $this->initializeVariables();
+
         // Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
         if (isset($_COOKIE[ $this->config[ 'name' ] ]) && (
                 ! is_string($_COOKIE[ $this->config[ 'name' ] ]) || ! preg_match('#\A' . $this->sidRegexp . '\z#',
@@ -164,16 +181,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
             unset($_COOKIE[ $this->config[ 'name' ] ]);
         }
 
-        /**
-         * If throwing error
-         *  session_start(): Failed to initialize storage module: user (path: )
-         *
-         * Change the php.ini
-         * session.save_path = "N;/path" **to** session.save_path = "/tmp"
-         */
         session_start();
-
-        $this->initializeVariables();
 
         // Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
         if (isset($_COOKIE[ $this->config[ 'name' ] ]) && (
@@ -205,7 +213,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
                 session_id(),
                 (empty($this->config[ 'lifetime' ]) ? 0 : time() + $this->config[ 'lifetime' ]),
                 $this->config[ 'cookie' ]->path,
-                '.' . ltrim($this->config[ 'cookie' ]->domain, '.'),
+                $this->config[ 'cookie' ]->domain,
                 $this->config[ 'cookie' ]->secure,
                 true
             );
@@ -240,19 +248,25 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
                 : (isset($_SERVER[ 'SERVER_NAME' ]) ? $_SERVER[ 'SERVER_NAME' ] : null));
         }
 
-        $this->config[ 'cookie' ]->domain = ltrim($this->config[ 'cookie' ]->domain, '.');
-
-        ini_set('session.cookie_domain', '.' . $this->config[ 'cookie' ]->domain);
+        ini_set('session.cookie_domain', $this->config[ 'cookie' ]->domain);
         ini_set('session.cookie_path', $this->config[ 'cookie' ]->path);
 
         // Security is king
-        ini_set('session.cookie_lifetime', 0);
+        ini_set('session.cookie_lifetime', $this->config[ 'lifetime' ]);
         ini_set('session.use_cookies', 'On');
         ini_set('session.use_only_cookies', 'On');
         ini_set('session.use_strict_mode', 'On');
         ini_set('session.cookie_httponly', 'On');
         ini_set('ssession.cookie_secure', (is_https() ? 'On' : 'Off'));
         ini_set('session.use_trans_sid', 'Off');
+
+        session_set_cookie_params(
+            (empty($this->config[ 'lifetime' ]) ? 0 : time() + $this->config[ 'lifetime' ]),
+            $this->config[ 'cookie' ]->path,
+            $this->config[ 'cookie' ]->domain,
+            $this->config[ 'cookie' ]->secure,
+            true
+        );
 
         $this->configureSidLength();
     }
@@ -413,71 +427,15 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     /**
      * Session::destroy
      *
-     * Destroys the current session.
+     * Destroying current session
      *
-     * @return void
+     * @param callable $destructionCallback Callback destruction.
+     *
+     * @return array Array of old storage items.
      */
-    public function destroy()
+    public function destroy($destructionCallback = null)
     {
         session_destroy();
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::__isset
-     *
-     * Implementing magic method __isset to simplify when checks if offset exists on PHP native session variable,
-     * just simply calling isset( $session[ 'offset' ] ).
-     *
-     * @param mixed $offset PHP native session offset.
-     *
-     * @return bool
-     */
-    public function has($offset)
-    {
-        return $this->offsetExists($offset);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::offsetExists
-     *
-     * Checks if offset exists on PHP native session variable.
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
-     *
-     * @param mixed $offset <p>
-     *                      An offset to check for.
-     *                      </p>
-     *
-     * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
-     * @since 5.0.0
-     */
-    public function offsetExists($offset)
-    {
-        return (bool)isset($_SESSION[ $offset ]);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::__isset
-     *
-     * Implementing magic method __isset to simplify when checks if offset exists on PHP native session variable,
-     * just simply calling isset( $session[ 'offset' ] ).
-     *
-     * @param mixed $offset PHP native session offset.
-     *
-     * @return bool
-     */
-    public function __isset($offset)
-    {
-        return $this->offsetExists($offset);
     }
 
     // ------------------------------------------------------------------------
@@ -495,114 +453,17 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     public function &__get($offset)
     {
         if ($offset === 'id') {
-            $_SESSION[ 'id' ] = session_id();
+            $this->storage[ 'id' ] = session_id();
         }
 
-        if ( ! isset($_SESSION[ $offset ])) {
-            $_SESSION[ $offset ] = null;
+        if ( ! isset($this->storage[ $offset ])) {
+            $this->storage[ $offset ] = null;
         }
 
-        return $_SESSION[ $offset ];
+        return $this->storage[ $offset ];
     }
 
     // ------------------------------------------------------------------------
-
-    /**
-     * Session::__set
-     *
-     * Implementing magic method __set to simplify set PHP native session variable,
-     * just simply calling $session->offset = 'foo'.
-     *
-     * @param mixed $offset PHP native session offset.
-     * @param mixed $value  PHP native session offset value to set.
-     */
-    public function __set($offset, $value)
-    {
-        $this->offsetSet($offset, $value);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::offsetSet
-     *
-     * Sets session data into PHP native session global variable.
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetset.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to assign the value to.
-     *                      </p>
-     * @param mixed $value  <p>
-     *                      The value to set.
-     *                      </p>
-     *
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetSet($offset, $value)
-    {
-        $_SESSION[ $offset ] =& $value;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::__unset
-     *
-     * Implementing magic method __unset to simplify unset method, just simply calling
-     * unset( $session[ 'offset' ] ).
-     *
-     * @param mixed $offset PHP Native session offset
-     *
-     * @return void
-     */
-    public function __unset($offset)
-    {
-        $this->offsetUnset($offset);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::offsetUnset
-     *
-     * Remove session data from PHP native session global variable.
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to unset.
-     *                      </p>
-     *
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetUnset($offset)
-    {
-        if (isset($_SESSION[ $offset ])) {
-            unset($_SESSION[ $offset ]);
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Session::getIterator
-     *
-     * Retrieve an external iterator
-     *
-     * @link  http://php.net/manual/en/iteratoraggregate.getiterator.php
-     * @return Traversable An instance of an object implementing <b>Iterator</b> or
-     *        <b>Traversable</b>
-     * @since 5.0.0
-     */
-    public function getIterator()
-    {
-        return new ArrayIterator($_SESSION);
-    }
-
-    //--------------------------------------------------------------------
 
     /**
      * Session::setFlash
@@ -693,20 +554,6 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
     }
 
     // ------------------------------------------------------------------------
-
-    /**
-     * Session::get
-     *
-     * @param string $offset Session offset or associative array of session values
-     *
-     * @return mixed
-     */
-    public function get($offset)
-    {
-        return $this->offsetGet($offset);
-    }
-
-    //--------------------------------------------------------------------
 
     /**
      * Session::offsetGet
@@ -906,7 +753,7 @@ class Session implements \ArrayAccess, \IteratorAggregate, LoggerAwareInterface
      *
      * Gets either a single piece or all temporary session variables.
      *
-     * @param  string $offset Temporary session variable string offset identifier.
+     * @param string $offset Temporary session variable string offset identifier.
      *
      * @return array Returns temporary session variables.
      */

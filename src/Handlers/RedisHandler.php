@@ -88,7 +88,7 @@ class RedisHandler extends AbstractHandler
                 $this->logger->error('SESSION_E_PLATFORM_UNSUPPORTED', ['Redis']);
             }
 
-           z
+            return $this->failure;
         }
 
         try {
@@ -103,7 +103,7 @@ class RedisHandler extends AbstractHandler
                     $this->logger->error('SESSION_E_REDIS_CONNECTION_FAILED', ['Redis']);
                 }
 
-                return false;
+                return $this->failure;
             }
 
             if (isset($this->config[ 'password' ]) AND ! $this->redis->auth($this->config[ 'password' ])) {
@@ -111,7 +111,7 @@ class RedisHandler extends AbstractHandler
                     $this->logger->error('SESSION_E_REDIS_AUTHENTICATION_FAILED', ['Redis']);
                 }
 
-                return false;
+                return $this->failure;
             }
 
             return true;
