@@ -86,6 +86,10 @@ class Config extends DataStructures\Config
             ];
         }
 
+        if (empty($config[ 'cookie' ][ 'wildcard' ])) {
+            $config[ 'cookie' ][ 'wildcard' ] = true;
+        }
+
         if ( ! isset($config[ 'regenerate' ])) {
             $config[ 'regenerate' ][ 'destroy' ] = false;
             $config[ 'regenerate' ][ 'lifetime' ] = 600;
