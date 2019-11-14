@@ -16,11 +16,8 @@ namespace O2System;
 // ------------------------------------------------------------------------
 
 use O2System\Kernel\Http\Message\Uri\Domain;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
-use O2System\Spl\Iterators\ArrayIterator;
-use Traversable;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Session
@@ -80,8 +77,10 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
 
         $this->config = $config;
 
-        if($this->config->cookie->wildcard === false) {
-            $this->config->cookie->domain = '.' . (new Domain())->__toString();
+        if ($this->config->cookie->wildcard === false) {
+            $this->config->cookie->domain = (new Domain())->__toString();
+        } else {
+            $this->config->cookie->domain = '.' . ltrim($this->config->cookie->domain, '.');
         }
 
         if ($this->config->offsetExists('handler')) {
@@ -161,6 +160,10 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
             }
 
             return;
+        } elseif (session_status() === PHP_SESSION_ACTIVE)
+        {
+            $this->logger->warning('Session: Sessions is enabled, and one exists.Please don\'t $session->start();');
+            return;
         }
 
         if ( ! $this->handler instanceof \SessionHandlerInterface) {
@@ -181,8 +184,6 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
         }
 
         session_start();
-
-        $this->initializeVariables();
 
         // Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
         if (isset($_COOKIE[ $this->config[ 'name' ] ]) && (
@@ -205,6 +206,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
                 $this->regenerate();
             }
         }
+
         // Another work-around ... PHP doesn't seem to send the session cookie
         // unless it is being currently created or regenerated
         elseif (isset($_COOKIE[ $this->config[ 'name' ] ]) && $_COOKIE[ $this->config[ 'name' ] ] === session_id()
@@ -214,11 +216,13 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
                 session_id(),
                 (empty($this->config[ 'lifetime' ]) ? 0 : time() + $this->config[ 'lifetime' ]),
                 $this->config[ 'cookie' ]->path,
-                '.' . ltrim($this->config[ 'cookie' ]->domain, '.'),
+                $this->config[ 'cookie' ]->domain,
                 $this->config[ 'cookie' ]->secure,
                 true
             );
         }
+
+        $this->initializeVariables();
 
         if ($this->logger instanceof LoggerInterface) {
             $this->logger->debug('DEBUG_SESSION_INITIALIZED', [$this->handler->getPlatform()]);
@@ -244,24 +248,25 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
             ini_set('session.gc_maxlifetime', (int)$this->config[ 'lifetime' ]);
         }
 
-        if (empty($this->config[ 'cookie' ]->domain)) {
-            $this->config[ 'cookie' ]->domain = (isset($_SERVER[ 'HTTP_HOST' ]) ? $_SERVER[ 'HTTP_HOST' ]
-                : (isset($_SERVER[ 'SERVER_NAME' ]) ? $_SERVER[ 'SERVER_NAME' ] : null));
-        }
-
-        $this->config[ 'cookie' ]->domain = ltrim($this->config[ 'cookie' ]->domain, '.');
-
-        ini_set('session.cookie_domain', '.' . $this->config[ 'cookie' ]->domain);
+        ini_set('session.cookie_domain', $this->config[ 'cookie' ]->domain);
         ini_set('session.cookie_path', $this->config[ 'cookie' ]->path);
 
         // Security is king
-        ini_set('session.cookie_lifetime', 0);
-        ini_set('session.use_cookies', 'On');
-        ini_set('session.use_only_cookies', 'On');
-        ini_set('session.use_strict_mode', 'On');
-        ini_set('session.cookie_httponly', 'On');
-        ini_set('ssession.cookie_secure', (is_https() ? 'On' : 'Off'));
-        ini_set('session.use_trans_sid', 'Off');
+        ini_set('session.cookie_lifetime', $this->config[ 'lifetime' ]);
+        ini_set('session.use_cookies', 1);
+        ini_set('session.use_only_cookies', 1);
+        ini_set('session.use_strict_mode', 1);
+        ini_set('session.cookie_httponly', 1);
+        ini_set('ssession.cookie_secure', (is_https() ? 1 : 0));
+        ini_set('session.use_trans_sid', 0);
+        
+        session_set_cookie_params(
+            (empty($this->config[ 'lifetime' ]) ? 0 : time() + $this->config[ 'lifetime' ]),
+            $this->config[ 'cookie' ]->path,
+            $this->config[ 'cookie' ]->domain,
+            $this->config[ 'cookie' ]->secure,
+            true
+        );
 
         $this->configureSidLength();
     }
@@ -285,35 +290,20 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
      */
     protected function configureSidLength()
     {
-        if (PHP_VERSION_ID < 70100) {
-            $bits = 160;
-            $hash_function = ini_get('session.hash_function');
-            if (ctype_digit($hash_function)) {
-                if ($hash_function !== '1') {
-                    ini_set('session.hash_function', 1);
-                    $bits = 160;
-                }
-            } elseif ( ! in_array($hash_function, hash_algos(), true)) {
-                ini_set('session.hash_function', 1);
-                $bits = 160;
-            } elseif (($bits = strlen(hash($hash_function, 'dummy', false)) * 4) < 160) {
-                ini_set('session.hash_function', 1);
-                $bits = 160;
-            }
-            $bits_per_character = (int)ini_get('session.hash_bits_per_character');
-            $sid_length = (int)ceil($bits / $bits_per_character);
-        } else {
-            $bits_per_character = (int)ini_get('session.sid_bits_per_character');
-            $sid_length = (int)ini_get('session.sid_length');
-            if (($sid_length * $bits_per_character) < 160) {
-                $bits = ($sid_length * $bits_per_character);
-                // Add as many more characters as necessary to reach at least 160 bits
-                $sid_length += (int)ceil((160 % $bits) / $bits_per_character);
-                ini_set('session.sid_length', $sid_length);
-            }
+        $bitsPerChars = (int)(ini_get('session.sid_bits_per_character') !== false
+            ? ini_get('session.sid_bits_per_character')
+            : 4);
+        $sidLength = (int)(ini_get('session.sid_length') !== false
+            ? ini_get('session.sid_length')
+            : 40);
+        if (($sidLength * $bitsPerChars) < 160) {
+            $bits = ($sidLength * $bitsPerChars);
+            // Add as many more characters as necessary to reach at least 160 bits
+            $sidLength += (int)ceil((160 % $bits) / $bitsPerChars);
+            ini_set('session.sid_length', $sidLength);
         }
         // Yes, 4,5,6 are the only known possible values as of 2016-10-27
-        switch ($bits_per_character) {
+        switch ($bitsPerChars) {
             case 4:
                 $this->sidRegexp = '[0-9a-f]';
                 break;
@@ -324,7 +314,8 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
                 $this->sidRegexp = '[0-9a-zA-Z,-]';
                 break;
         }
-        $this->sidRegexp .= '{' . $sid_length . '}';
+
+        $this->sidRegexp .= '{' . $sidLength . '}';
     }
 
     //--------------------------------------------------------------------
@@ -361,6 +352,8 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
         }
     }
 
+    //--------------------------------------------------------------------
+
     /**
      * Session::regenerate
      *
@@ -368,10 +361,12 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
      *
      * @return void
      */
-    public function regenerate()
+    public function regenerate($destroy = false)
     {
+        $destroy = empty($destroy) ? $this->config[ 'regenerate' ]->destroy : $destroy;
+
         $_SESSION[ 'last_regenerate' ] = time();
-        session_regenerate_id($this->config[ 'regenerate' ]->destroy);
+        session_regenerate_id($destroy);
     }
 
     //--------------------------------------------------------------------
@@ -404,12 +399,13 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
      */
     public function stop()
     {
+        print_console('stopping cookie');
         setcookie(
             $this->config[ 'name' ],
             session_id(),
             1,
             $this->config[ 'cookie' ]->path,
-            '.' . ltrim($this->config[ 'cookie' ]->domain, '.'),
+            $this->config[ 'cookie' ]->domain,
             $this->config[ 'cookie' ]->secure,
             true
         );
@@ -748,7 +744,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
      *
      * Gets either a single piece or all temporary session variables.
      *
-     * @param  string $offset Temporary session variable string offset identifier.
+     * @param string $offset Temporary session variable string offset identifier.
      *
      * @return array Returns temporary session variables.
      */

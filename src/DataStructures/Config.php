@@ -43,7 +43,6 @@ class Config extends DataStructures\Config
 
         if (isset($config[ 'handler' ])) {
             $config[ 'handler' ] = $config[ 'handler' ] === 'files' ? 'file' : $config[ 'handler' ];
-            // $config[ 'handler' ] = $config[ 'handler' ] === 'memcache' ? 'memcached' : $config[ 'handler' ];
         }
 
         if ($config[ 'handler' ] === 'file') {
