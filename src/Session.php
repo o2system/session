@@ -184,6 +184,8 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
         }
 
         session_start();
+        
+        $this->storage =& $_SESSION;
 
         // Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
         if (isset($_COOKIE[ $this->config[ 'name' ] ]) && (
