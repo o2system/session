@@ -1,4 +1,4 @@
-![alt text](https://www.o2system.id/assets/img/covers/cover-o2system-atom-session.png "O2System Session Atom")
+![alt text](https://repository-images.githubusercontent.com/68260983/1ed0b480-5c98-11ea-8e47-b2e41939b1c1 "O2System Session Atom")
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/session/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/session/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/o2system/session/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/session/build-status/master)
