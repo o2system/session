@@ -1,6 +1,7 @@
 {
   "name": "o2system/session",
   "description": "Open Source PHP Session Management Library",
+  "license": "MIT",
   "type": "package",
   "keywords": [
     "session",
