@@ -183,7 +183,10 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
             unset($_COOKIE[ $this->config[ 'name' ] ]);
         }
 
-        session_start();
+        if(session_id() === '' || !isset($_SESSION)) {
+            // session isn't started
+            session_start();
+        }
         
         $this->storage =& $_SESSION;
 
@@ -401,7 +404,6 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
      */
     public function stop()
     {
-        print_console('stopping cookie');
         setcookie(
             $this->config[ 'name' ],
             session_id(),
