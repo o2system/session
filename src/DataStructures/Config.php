@@ -85,20 +85,24 @@ class Config extends DataStructures\Config
             ];
         }
 
+        if (empty($config[ 'cookie' ][ 'domain' ])) {
+            $config[ 'cookie' ][ 'domain' ] = '.' . isset($_SERVER[ 'HTTP_HOST' ]) ? $_SERVER[ 'HTTP_HOST' ] : $_SERVER[ 'SERVER_NAME' ];
+        }
+
         if (empty($config[ 'cookie' ][ 'wildcard' ])) {
             $config[ 'cookie' ][ 'wildcard' ] = true;
         }
 
-        if ( ! isset($config[ 'regenerate' ])) {
+        if (empty($config[ 'regenerate' ])) {
             $config[ 'regenerate' ][ 'destroy' ] = false;
             $config[ 'regenerate' ][ 'lifetime' ] = 600;
         }
 
-        if ( ! isset($config[ 'lifetime' ])) {
+        if (empty($config[ 'lifetime' ])) {
             $config[ 'lifetime' ] = $config[ 'cookie' ][ 'lifetime' ];
         }
 
-        if ( ! isset($config[ 'path' ])) {
+        if (empty($config[ 'path' ])) {
             $config[ 'path' ] = '/';
         }
 
