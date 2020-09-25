@@ -183,7 +183,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
             unset($_COOKIE[ $this->config[ 'name' ] ]);
         }
 
-        if(session_id() === '' || !isset($_SESSION)) {
+        if( ! $this->isStarted()) {
             // session isn't started
             session_start();
         }
@@ -210,12 +210,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
             } elseif ($_SESSION[ 'last_regenerate' ] < (time() - $regenerateTime)) {
                 $this->regenerate();
             }
-        }
-
-        // Another work-around ... PHP doesn't seem to send the session cookie
-        // unless it is being currently created or regenerated
-        elseif (isset($_COOKIE[ $this->config[ 'name' ] ]) && $_COOKIE[ $this->config[ 'name' ] ] === session_id()
-        ) {
+        } elseif (empty($_COOKIE[ $this->config[ 'name' ] ]) || $_COOKIE[ $this->config[ 'name' ] ] !== session_id()) {
             setcookie(
                 $this->config[ 'name' ],
                 session_id(),
@@ -223,7 +218,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
                 $this->config[ 'cookie' ]->path,
                 $this->config[ 'cookie' ]->domain,
                 $this->config[ 'cookie' ]->secure,
-                true
+                $this->config[ 'cookie' ]->httpOnly
             );
         }
 
@@ -261,7 +256,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
         ini_set('session.use_cookies', 1);
         ini_set('session.use_only_cookies', 1);
         ini_set('session.use_strict_mode', 1);
-        ini_set('session.cookie_httponly', 1);
+        ini_set('session.cookie_httponly', $this->config[ 'cookie' ]->httpOnly);
         ini_set('ssession.cookie_secure', (is_https() ? 1 : 0));
         ini_set('session.use_trans_sid', 0);
         
@@ -270,7 +265,7 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
             $this->config[ 'cookie' ]->path,
             $this->config[ 'cookie' ]->domain,
             $this->config[ 'cookie' ]->secure,
-            true
+            $this->config[ 'cookie' ]->httpOnly
         );
 
         $this->configureSidLength();
@@ -387,7 +382,9 @@ class Session extends \O2System\Kernel\DataStructures\Input\Session
     public function isStarted()
     {
         if (php_sapi_name() !== 'cli') {
-            return session_status() === PHP_SESSION_ACTIVE ? true : false;
+            if(session_id() !== '' || isset($_SESSION) || session_status() === PHP_SESSION_ACTIVE) {
+                return true;
+            }
         }
 
         return false;

@@ -15,6 +15,7 @@ namespace O2System\Session\Handlers;
 
 // ------------------------------------------------------------------------
 
+use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 use Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
 use O2System\Session\DataStructures\Config;
@@ -59,6 +60,10 @@ class RedisHandler extends AbstractHandler
                 'timeout'  => 5,
             ]
         );
+
+        if ($this->isSupported() === false) {
+            throw new BadPhpExtensionCallException('E_REDIS_EXTENSION');
+        }
 
         parent::__construct($config);
     }

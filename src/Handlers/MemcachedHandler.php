@@ -15,6 +15,7 @@ namespace O2System\Session\Handlers;
 
 // ------------------------------------------------------------------------
 
+use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 use Psr\Log\LoggerInterface;
 use O2System\Session\Abstracts\AbstractHandler;
 use O2System\Session\DataStructures\Config;
@@ -57,6 +58,10 @@ class MemcachedHandler extends AbstractHandler
                 'weight' => 1,
             ]
         );
+
+        if ($this->isSupported() === false) {
+            throw new BadPhpExtensionCallException('E_MEMCACHED_EXTENSION');
+        }
 
         parent::__construct($config);
     }
